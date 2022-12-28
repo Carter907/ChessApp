@@ -10,6 +10,7 @@ import javafx.scene.*;
 
 import javafx.scene.control.CheckBox;
 
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -63,7 +64,7 @@ public class AppStart extends Application {
 
         root.getChildren().add(outerBorder);
         Scene scene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
-
+        stage.getIcons().add(new Image(AppStart.class.getResource("application_assets/icons/app_icon.png").toExternalForm()));
         stage.setScene(scene);
         stage.setResizable(true);
         stage.setTitle("Chess");
