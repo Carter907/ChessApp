@@ -31,18 +31,25 @@ public class AppStart extends Application {
         window = stage;
 
         Pane root = new Pane();
+        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
+
         BorderPane outerBorder = new BorderPane();
+        outerBorder.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         Pane boardBacker = new Pane();
         HBox top = new HBox();
+        top.setSpacing(10);
+        top.setPadding(new Insets(10));
         Board board = new Board(SCREEN_HEIGHT/9);
         board.setPiecePane(boardBacker);
 
         outerBorder.layoutXProperty().bind(stage.widthProperty().divide(2).subtract(board.getSquareSize()*4));
         CheckBox partyMode = new CheckBox("party mode");
+        partyMode.setTextFill(Color.WHITE);
         partyMode.setOnAction(e -> {
             AnimateUtils.partyMode(e, board);
         });
         CheckBox debug = new CheckBox("debug mode");
+        debug.setTextFill(Color.WHITE);
         debug.setOnAction(board::debug);
 
 
