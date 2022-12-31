@@ -3,7 +3,7 @@ package com.example.chessapp.board;
 import com.example.chessapp.peices.Piece;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
 
 public class BoardManager {
     private Board board;
@@ -12,6 +12,7 @@ public class BoardManager {
     public BoardManager(Board board) {
         this.board = board;
     }
+
     public int xToFile(double squareWidth, double x) {
         return (int) ((x + squareWidth) / squareWidth);
     }
@@ -34,27 +35,56 @@ public class BoardManager {
             case PAWN_B, PAWN_W -> {
                 return pawnPositionLegal(piece, setRank, setFile);
             }
-//            case NIGHT_B, NIGHT_W -> {
-//                return knightPositionLegal(piece, setRank, setFile);
-//            }
-//            case BISHOP_B, BISHOP_W -> {
-//                return bishopPositionLegal(piece, setRank, setFile);
-//            }
-//            case ROOK_B, ROOK_W -> {
-//                return rookPositionLegal(piece, setRank, setFile);
-//            }
-//            case KING_B, KING_W -> {
-//                return kingPositionLegal(piece, setRank, setFile);
-//            }
+            case NIGHT_B, NIGHT_W -> {
+                return knightPositionLegal(piece, setRank, setFile);
+            }
+            case BISHOP_B, BISHOP_W -> {
+                return bishopPositionLegal(piece, setRank, setFile);
+            }
+            case ROOK_B, ROOK_W -> {
+                return rookPositionLegal(piece, setRank, setFile);
+            }
+            case KING_B, KING_W -> {
+                return kingPositionLegal(piece, setRank, setFile);
+            }
+            case QUEEN_B, QUEEN_W -> {
+                return queenPositionLegal(piece, setRank, setFile);
+            }
         }
         return null;
     }
 
-    private Integer[] setCaptureSquares(Integer[] indices) {
-        for (Integer n : indices) {
-            Board.Square square = board.findSquare(n);
-            square.setCaptureSquare(true);
+    private Integer[] queenPositionLegal(Piece piece, int setRank, int setFile) {
+        int actualRank = piece.getRank();
+        int actualFile = piece.getFile();
+
+        if (actualRank != setRank && actualFile != setFile)
+            return bishopPositionLegal(piece, setRank, setFile);
+        else
+            return rookPositionLegal(piece, setRank, setFile);
+
+    }
+
+    private Integer[] setConstraints(Integer[] indices, PositionType... constraints) {
+
+        for (PositionType constraint : constraints) {
+            switch (constraint) {
+                case CAPTURE -> {
+                    for (Integer n : indices) {
+                        Board.Square square = board.findSquare(n);
+                        square.setCaptureSquare(true);
+                    }
+                }
+                case CLEAR -> {
+                    for (Integer n : indices) {
+                        Board.Square square = board.findSquare(n);
+                        square.setClearSquare(true);
+                    }
+                }
+            }
         }
+
+
         return indices;
     }
 
@@ -62,40 +92,111 @@ public class BoardManager {
         for (Integer n : indices) {
             Board.Square square = board.findSquare(n);
             square.setCaptureSquare(false);
+            square.setClearSquare(false);
         }
         return indices;
     }
 
-    private boolean kingPositionLegal(Piece piece, int setRank, int setFile) {
+    public void applyToAllSquares(Integer[] indices, Consumer<Board.Square> consumer) {
+
+        Arrays.stream(indices).map(board::findSquare).forEach(consumer);
+
+    }
+
+    private Integer[] kingPositionLegal(Piece piece, int setRank, int setFile) {
         int actualRank = piece.getRank();
         int actualFile = piece.getFile();
 
         if ((actualFile + 1 == setFile || actualFile - 1 == setFile)
                 && (setRank < actualRank + 2 && setRank > actualRank - 2))
-            return true;
+            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, PositionType.CAPTURE, PositionType.CLEAR);
         if ((actualFile == setFile) && (setRank < actualRank + 2 && setRank > actualRank - 2))
-            return true;
+            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, PositionType.CAPTURE, PositionType.CLEAR);
 
-        return false;
+        return null;
     }
 
-    private boolean rookPositionLegal(Piece piece, int setRank, int setFile) {
+    private Integer[] rookPositionLegal(Piece piece, int setRank, int setFile) {
         int actualRank = piece.getRank();
         int actualFile = piece.getFile();
+        Integer[] squareArr = new Integer[0];
+        if (actualFile == setFile ^ actualRank == setRank) {
+            if (actualFile == setFile) {
+                if (setRank > actualRank) {
+                    for (int i = setRank; i > actualRank; i--) {
+                        squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
+                        squareArr[squareArr.length - 1] = posToIndex(i, setFile);
+                    }
 
-        if (actualFile == setFile ^ actualRank == setRank)
-            return true;
-        return false;
+                } else if (setRank < actualRank) {
+                    for (int i = setRank; i < actualRank; i++) {
+                        squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
+                        squareArr[squareArr.length - 1] = posToIndex(i, setFile);
+                    }
+                }
+            } else if (setFile > actualFile) {
+
+                for (int i = setFile; i > actualFile; i--) {
+                    squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
+                    squareArr[squareArr.length - 1] = posToIndex(setRank, i);
+                }
+            } else if (setFile < actualFile) {
+                for (int i = setFile; i < actualFile; i++) {
+                    squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
+                    squareArr[squareArr.length - 1] = posToIndex(setRank, i);
+                }
+            }
+
+            return setConstraints(squareArr, PositionType.CAPTURE, PositionType.CLEAR);
+        }
+        return null;
     }
 
-    private boolean bishopPositionLegal(Piece piece, int setRank, int setFile) {
+    private Integer[] bishopPositionLegal(Piece piece, int setRank, int setFile) {
         int actualRank = piece.getRank();
         int actualFile = piece.getFile();
+        int actualIndex = posToIndex(actualRank, actualFile);
+        int setIndex = posToIndex(setRank, setFile);
+        //capture clear
+        //TODO: figure out how to get all squares of a moving bishop
+        if (actualIndex != setIndex) {
+            Integer[] squareArr = new Integer[0];
+            if ((actualFile - actualRank) == (setFile - setRank)) {
+                System.out.println(squareArr);
+                if (actualRank < setRank) {
+                    for (int i = setRank, y = 0; i > actualRank; i--, y++) {
+                        squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
+                        squareArr[squareArr.length - 1] = posToIndex(i, setFile - y);
+                    }
+                    System.out.println(Arrays.toString(squareArr));
+                } else {
+                    for (int i = setRank, y = 0; i < actualRank; i++, y++) {
+                        squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
+                        squareArr[squareArr.length - 1] = posToIndex(i, setFile + y);
+                    }
+                    System.out.println(Arrays.toString(squareArr));
+                }
+                return setConstraints(squareArr, PositionType.CAPTURE, PositionType.CLEAR);
+            } else if ((actualRank + actualFile) == (setRank + setFile)) {
 
-        if ((actualRank + actualFile) == (setRank + setFile))
-            return true;
+                if (actualRank < setRank) {
+                    for (int i = setRank, y = 0; i > actualRank; i--, y++) {
+                        squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
+                        squareArr[squareArr.length - 1] = posToIndex(i, setFile + y);
+                    }
+                    System.out.println(Arrays.toString(squareArr));
+                } else {
+                    for (int i = setRank, y = 0; i < actualRank; i++, y++) {
+                        squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
+                        squareArr[squareArr.length - 1] = posToIndex(i, setFile - y);
+                    }
+                    System.out.println(Arrays.toString(squareArr));
+                }
+                return setConstraints(squareArr, PositionType.CAPTURE, PositionType.CLEAR);
 
-        return false;
+            }
+        }
+        return null;
 
     }
 
@@ -120,7 +221,7 @@ public class BoardManager {
             }
             if (actualRank + 1 == setRank) {
                 if (actualFile + 1 == setFile || actualFile - 1 == setFile)
-                    return setCaptureSquares(new Integer[]{posToIndex(setRank, setFile)});
+                    return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, PositionType.CAPTURE);
 
             }
         } else if (piece.getType() == Piece.PieceType.PAWN_W) {
@@ -134,7 +235,7 @@ public class BoardManager {
             }
             if (actualRank - 1 == setRank) {
                 if (actualFile - 1 == setFile || actualFile + 1 == setFile)
-                    return setCaptureSquares(new Integer[]{posToIndex(setRank, setFile)});
+                    return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, PositionType.CAPTURE);
 
             }
         }
@@ -156,16 +257,16 @@ public class BoardManager {
 
     }
 
-    private boolean knightPositionLegal(Piece piece, int setRank, int setFile) {
+    private Integer[] knightPositionLegal(Piece piece, int setRank, int setFile) {
         int actualRank = piece.getRank();
         int actualFile = piece.getFile();
 
         if ((setFile == actualFile - 1 || setFile == actualFile + 1) && (setRank == actualRank + 2 || setRank == actualRank - 2))
-            return true;
+            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, PositionType.CLEAR, PositionType.CAPTURE);
         if ((setFile == actualFile - 2 || setFile == actualFile + 2) && (setRank == actualRank + 1 || setRank == actualRank - 1))
-            return true;
+            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, PositionType.CLEAR, PositionType.CAPTURE);
 
-        return false;
+        return null;
     }
 
 

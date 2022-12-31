@@ -113,7 +113,8 @@ public class Piece extends ImageView {
             if (squares != null) {
                 Map<PositionType, Board.Square> values = piece.board.checkSquares(piece, squares, rank, file);
                 piece.boardManager.resetConstraints(squares);
-
+                piece.board.refreshAllSquares();
+                piece.boardManager.applyToAllSquares(squares, s -> s.setHighlighted(true));
 
                 PositionType posType = values.entrySet().iterator().next().getKey();
                 Board.Square square = values.entrySet().iterator().next().getValue();

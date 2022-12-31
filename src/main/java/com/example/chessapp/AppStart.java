@@ -52,10 +52,12 @@ public class AppStart extends Application {
         CheckBox debug = new CheckBox("debug mode");
         debug.setTextFill(Color.WHITE);
         debug.setOnAction(board::debug);
-
+        partyMode.setDisable(true);
 
         top.getChildren().addAll(partyMode, debug);
         boardBacker.getChildren().add(board);
+
+        // starting position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
 
         board.init("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 

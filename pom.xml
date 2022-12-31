@@ -63,7 +63,7 @@
                     <launcher>launcher</launcher>
                     <jlinkImageName>ChessApp</jlinkImageName>
                     <jlinkZipName>ChessApp</jlinkZipName>
-                    <mainClass>com.example.chessapp.AppStarter</mainClass>
+                    <mainClass>com.example.chessapp.Launcher</mainClass>
                 </configuration>
             </plugin>
             <plugin>
@@ -79,7 +79,7 @@
                             <archive>
                                 <manifest>
                                     <mainClass>
-                                        com.example.chessapp.AppStarter
+                                        com.example.chessapp.Launcher
                                     </mainClass>
                                 </manifest>
                             </archive>

@@ -8,12 +8,9 @@ import javafx.geometry.Pos;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.TilePane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.util.Callback;
 
 import java.util.Collections;
 import java.util.Locale;
@@ -24,7 +21,7 @@ public class Board extends TilePane {
 
     public final int SIZE = 8;
     private int squareCount;
-    public final Color defaultDark = Color.web("#8e5e3e").darker();
+    public final Color defaultDark = Color.web("#8e5e3e").darker().brighter();
     public final Color defaultLight = Color.web("#eec5aa").brighter();
     private int squareSize;
     private Color darkSquareColor;
@@ -53,7 +50,7 @@ public class Board extends TilePane {
 
     private void highlightHandler(MouseEvent e) {
         if (debugging.get()) {
-            int rank = boardManager.yToRank(squareSize, e.getY());
+            int rank = boardManager.yToRank(squareSize, e.getY()-squareSize);
             int file = boardManager.xToFile(squareSize, e.getX());
             Square squareToHighlight = findSquare(rank, file);
             if (squareToHighlight.isHighlighted()) {
@@ -127,13 +124,13 @@ public class Board extends TilePane {
         for (int ra = SIZE; ra > 0; ra--) {
             for (int fi = 1; fi <= SIZE; fi++) {
                 if ((ra + fi) % 2 == 0)
-                    this.newSquare(ra, fi, darkSquareColor);
-                else
                     this.newSquare(ra, fi, lightSquareColor);
+                else
+                    this.newSquare(ra, fi, darkSquareColor);
             }
         }
         this.currentPosition = fen;
-        setPieces(currentPosition);
+        setFenPosition(currentPosition);
 
     }
 
@@ -184,7 +181,7 @@ public class Board extends TilePane {
         this.piecePane = peicePane;
     }
 
-    private void setPieces(String fen) {
+    private void setFenPosition(String fen) {
         char ch;
         Piece piece;
         int rank = 8;
@@ -196,8 +193,10 @@ public class Board extends TilePane {
                 rank--;
                 file = 0;
                 continue;
-            } else if (ch == '8')
+            } else if (Character.isDigit(ch)) {
+                file+=Integer.parseInt(ch+"")-1;
                 continue;
+            }
 
             piece = new Piece(Piece.PieceType.charToPieceType(ch), this, rank, file);
             System.out.println("add a new " + piece);
@@ -212,18 +211,25 @@ public class Board extends TilePane {
 
     public void setDarkSquareColor(Color darkSquareColor) {
         this.darkSquareColor = darkSquareColor;
-        this.init();
-    }
-
-    public void resetColor() {
-        this.setLightSquareColor(this.defaultLight);
-        this.setDarkSquareColor(this.defaultDark);
     }
 
     public void setLightSquareColor(Color lightSquareColor) {
+
         this.lightSquareColor = lightSquareColor;
-        this.init();
+
     }
+    public void resetColor() {
+
+        this.setLightSquareColor(this.defaultLight);
+        this.setDarkSquareColor(this.defaultDark);
+        // need to update board in order for changes to apply
+    }
+
+    public void refreshAllSquares() {
+        this.getChildren().stream().map(n -> (Square)n).forEach(Square::paint);
+    }
+
+
 
     public Color getDarkSquareColor() {
         return darkSquareColor;
@@ -252,7 +258,6 @@ public class Board extends TilePane {
                 });
             } else {
                 debugging.set(false);
-                resetColor();
                 this.getChildren().forEach(node -> {
 
                     if (node instanceof Square) {
@@ -273,14 +278,25 @@ public class Board extends TilePane {
             if (square.hasPiece()) {
                 Piece dormant = square.getPiece();
                 if (dormant.getType().isOppositeTeam(active.getType())) {
+
+                    // piece can capture another piece
+
                     if (targetRank == dormant.getRank() && targetFile == dormant.getFile() && square.isCaptureSquare())
                         return Collections.singletonMap(PositionType.CAPTURE, square);
                     else
+
+                        // piece is blocked by another piece
+
                         return Collections.singletonMap(PositionType.BLOCKED, square);
                 } else
+
+                    // piece is the same team
+
                     return Collections.singletonMap(PositionType.BLOCKED, new Square(99, 99, Color.RED));
             }
-            else if (square.isCaptureSquare()) {
+            // piece is capturable only if it is not a clear square
+
+            else if (square.isCaptureSquare() && !square.isClearSquare()) {
                 return Collections.singletonMap(PositionType.BLOCKED, null);
             }
         }
@@ -303,6 +319,7 @@ public class Board extends TilePane {
         private Rectangle surface;
         private boolean highlighted;
         private boolean captureSquare;
+        private boolean clearSquare;
 
         private Square(int rank, int file, Color color) {
             this.rank = rank;
@@ -311,9 +328,12 @@ public class Board extends TilePane {
             this.piece = null;
             this.debug = false;
             this.captureSquare = false;
-
             paint();
 
+        }
+
+        public void refresh() {
+            paint();
         }
 
         private void paint() {
@@ -322,7 +342,8 @@ public class Board extends TilePane {
             this.surface = square;
             if (debug) {
                 Label label = new Label("rank=" + rank + "\nfile=" + file);
-                label.setTextFill(Color.RED);
+                //label.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
+                label.setTextFill(Color.LIME);
                 this.getChildren().add(square);
                 this.getChildren().add(label);
             } else {
@@ -330,6 +351,14 @@ public class Board extends TilePane {
             }
 
 
+        }
+
+        public boolean isClearSquare() {
+            return clearSquare;
+        }
+
+        public void setClearSquare(boolean clearSquare) {
+            this.clearSquare = clearSquare;
         }
 
         public Rectangle getSurface() {
@@ -365,6 +394,11 @@ public class Board extends TilePane {
             this.highlighted = b;
         }
 
+        public Integer getIndex() {
+
+            return boardManager.posToIndex(this.rank, this.file);
+        }
+
         public boolean isHighlighted() {
             return highlighted;
         }
@@ -372,9 +406,9 @@ public class Board extends TilePane {
         public boolean hasPiece() {
             return this.piece != null;
         }
-        @Override
-        public String toString() {
-            return String.format("<square rank=%d file=%d board=%s/>", rank, file, Board.this);
+
+        public void setColor(Color color) {
+            this.color = color;
         }
 
         public void setCaptureSquare(boolean captureSquare) {
@@ -383,5 +417,12 @@ public class Board extends TilePane {
         public boolean isCaptureSquare() {
             return this.captureSquare;
         }
+        @Override
+        public String toString() {
+            return String.format("<square rank=%d file=%d board=%s/>", rank, file, Board.this);
+        }
+
+
+
     }
 }
