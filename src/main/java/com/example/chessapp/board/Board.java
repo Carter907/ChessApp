@@ -289,7 +289,15 @@ public class Board extends TilePane {
     }
 
     public Map<PositionType, Square> checkSquares(Piece active, Integer[] squareIndexes, int targetRank, int targetFile) {
+
+        System.out.println(turnCount);
+        if (turnCount % 2 == 0 && active.getType().getTeam().equals("W"))
+            return Collections.singletonMap(PositionType.BLOCKED, null);
+        else if (turnCount % 2 == 1 && active.getType().getTeam().equals("B"))
+            return Collections.singletonMap(PositionType.BLOCKED, null);
+
         turnCount++;
+
         Square square;
         for (int index : squareIndexes) {
             square = findSquare(index);
