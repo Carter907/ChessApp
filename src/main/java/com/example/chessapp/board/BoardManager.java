@@ -81,6 +81,15 @@ public class BoardManager {
                         square.setClearSquare(true);
                     }
                 }
+                case EN_PASSANT -> {
+                    for (Integer n : indices) {
+                        Board.Square square = board.findSquare(n);
+                        square.setEnPassant(true);
+                        square.setPositionTurn(board.getTurnCount());
+
+                    }
+
+                }
             }
         }
 
@@ -93,6 +102,7 @@ public class BoardManager {
             Board.Square square = board.findSquare(n);
             square.setCaptureSquare(false);
             square.setClearSquare(false);
+
         }
         return indices;
     }
@@ -216,7 +226,7 @@ public class BoardManager {
                     return new Integer[]{posToIndex(setRank, setFile)};
                 }
                 if (actualRank + 2 == setRank && actualRank == 2)
-                    return new Integer[]{posToIndex(setRank - 1, setFile), posToIndex(setRank, setFile)};
+                    return new Integer[]{setConstraints(new Integer[]{posToIndex(setRank - 1, setFile)}, PositionType.EN_PASSANT)[0], posToIndex(setRank, setFile)};
 
             }
             if (actualRank + 1 == setRank) {
@@ -230,7 +240,7 @@ public class BoardManager {
                     return new Integer[]{posToIndex(setRank, setFile)};
                 }
                 if (actualRank - 2 == setRank && actualRank == 7)
-                    return new Integer[]{posToIndex(setRank + 1, setFile), posToIndex(setRank, setFile)};
+                    return new Integer[]{setConstraints(new Integer[]{posToIndex(setRank + 1, setFile)}, PositionType.EN_PASSANT)[0], posToIndex(setRank, setFile)};
 
             }
             if (actualRank - 1 == setRank) {

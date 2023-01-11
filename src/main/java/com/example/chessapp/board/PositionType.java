@@ -4,5 +4,6 @@ public enum PositionType {
     CLEAR,
     BLOCKED,
     CAPTURE,
-    CASTLE
+    CASTLE,
+    EN_PASSANT
 }

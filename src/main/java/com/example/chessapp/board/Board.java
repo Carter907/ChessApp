@@ -30,16 +30,19 @@ public class Board extends TilePane {
     private BooleanProperty debugging;
     private String currentPosition;
     private BoardManager boardManager;
+    private int turnCount;
 
 
-    public Board() {}
+    public Board() {
+    }
+
     public Board(int squareSize) {
         this.squareSize = squareSize;
         this.darkSquareColor = defaultDark;
         this.lightSquareColor = defaultLight;
         this.debugging = new SimpleBooleanProperty(false);
         this.boardManager = new BoardManager(this);
-
+        this.turnCount = 0;
         this.setAlignment(Pos.CENTER);
         this.setPrefColumns(SIZE);
         this.setPrefRows(SIZE);
@@ -50,7 +53,7 @@ public class Board extends TilePane {
 
     private void highlightHandler(MouseEvent e) {
         if (debugging.get()) {
-            int rank = boardManager.yToRank(squareSize, e.getY()-squareSize);
+            int rank = boardManager.yToRank(squareSize, e.getY() - squareSize);
             int file = boardManager.xToFile(squareSize, e.getX());
             Square squareToHighlight = findSquare(rank, file);
             if (squareToHighlight.isHighlighted()) {
@@ -194,7 +197,7 @@ public class Board extends TilePane {
                 file = 0;
                 continue;
             } else if (Character.isDigit(ch)) {
-                file+=Integer.parseInt(ch+"")-1;
+                file += Integer.parseInt(ch + "") - 1;
                 continue;
             }
 
@@ -203,6 +206,22 @@ public class Board extends TilePane {
             addPiece(piece, rank, file);
         }
 
+    }
+
+    public void setTurnCount(int turnCount) {
+        this.turnCount = turnCount;
+    }
+
+    public int getTurnCount() {
+        return turnCount;
+    }
+
+    public int getSquareCount() {
+        return squareCount;
+    }
+
+    public void setSquareCount(int squareCount) {
+        this.squareCount = squareCount;
     }
 
     public int getSquareSize() {
@@ -218,6 +237,7 @@ public class Board extends TilePane {
         this.lightSquareColor = lightSquareColor;
 
     }
+
     public void resetColor() {
 
         this.setLightSquareColor(this.defaultLight);
@@ -226,10 +246,8 @@ public class Board extends TilePane {
     }
 
     public void refreshAllSquares() {
-        this.getChildren().stream().map(n -> (Square)n).forEach(Square::paint);
+        this.getChildren().stream().map(n -> (Square) n).forEach(Square::paint);
     }
-
-
 
     public Color getDarkSquareColor() {
         return darkSquareColor;
@@ -271,7 +289,7 @@ public class Board extends TilePane {
     }
 
     public Map<PositionType, Square> checkSquares(Piece active, Integer[] squareIndexes, int targetRank, int targetFile) {
-
+        turnCount++;
         Square square;
         for (int index : squareIndexes) {
             square = findSquare(index);
@@ -293,10 +311,10 @@ public class Board extends TilePane {
                     // piece is the same team
 
                     return Collections.singletonMap(PositionType.BLOCKED, new Square(99, 99, Color.RED));
-            }
-            // piece is capturable only if it is not a clear square
+            } else if (square.isEnPassant() && square.equals(findSquare(targetRank, targetFile)) && square.positionTurn+2 == turnCount) {
+                return Collections.singletonMap(PositionType.EN_PASSANT, null);
 
-            else if (square.isCaptureSquare() && !square.isClearSquare()) {
+            } else if (square.isCaptureSquare() && !square.isClearSquare()) {
                 return Collections.singletonMap(PositionType.BLOCKED, null);
             }
         }
@@ -311,6 +329,7 @@ public class Board extends TilePane {
     }
 
     public class Square extends StackPane {
+
         private boolean debug;
         private int rank;
         private int file;
@@ -320,6 +339,8 @@ public class Board extends TilePane {
         private boolean highlighted;
         private boolean captureSquare;
         private boolean clearSquare;
+        private boolean enPassant;
+        private int positionTurn;
 
         private Square(int rank, int file, Color color) {
             this.rank = rank;
@@ -353,6 +374,14 @@ public class Board extends TilePane {
 
         }
 
+        public boolean isEnPassant() {
+            return enPassant;
+        }
+
+        public void setEnPassant(boolean enPassant) {
+            this.enPassant = enPassant;
+        }
+
         public boolean isClearSquare() {
             return clearSquare;
         }
@@ -367,6 +396,14 @@ public class Board extends TilePane {
 
         public int getRank() {
             return rank;
+        }
+
+        public int getPositionTurn() {
+            return positionTurn;
+        }
+
+        public void setPositionTurn(int positionTurn) {
+            this.positionTurn = positionTurn;
         }
 
         public int getFile() {
@@ -414,14 +451,15 @@ public class Board extends TilePane {
         public void setCaptureSquare(boolean captureSquare) {
             this.captureSquare = captureSquare;
         }
+
         public boolean isCaptureSquare() {
             return this.captureSquare;
         }
+
         @Override
         public String toString() {
             return String.format("<square rank=%d file=%d board=%s/>", rank, file, Board.this);
         }
-
 
 
     }

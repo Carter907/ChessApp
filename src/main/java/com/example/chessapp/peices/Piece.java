@@ -130,7 +130,10 @@ public class Piece extends ImageView {
                         piece.capture(square.getPiece());
                         piece.setSquarePosition(piece.board.findSquare(rank, file));
                     }
-
+                    case EN_PASSANT -> {
+                        piece.setSquarePosition(piece.board.findSquare(rank, file));
+                        piece.capture(piece.board.findSquare(rank + (piece.getType().team.equals("W") ? 1 : -1), file).getPiece());
+                    }
                     case CASTLE -> {
 
                     }
@@ -236,6 +239,11 @@ public class Piece extends ImageView {
             }
             return null;
         }
+
+        public String getTeam() {
+            return team;
+        }
+
         public Image getImage() {
             return sprite;
         }
