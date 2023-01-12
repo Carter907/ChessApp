@@ -1,6 +1,7 @@
 package com.example.chessapp;
 
 import com.example.chessapp.board.Board;
+import com.example.chessapp.board.SquareTeam;
 import com.example.chessapp.misc.AnimateUtils;
 
 import javafx.application.*;
@@ -8,7 +9,7 @@ import javafx.application.*;
 import javafx.geometry.Insets;
 import javafx.scene.*;
 
-import javafx.scene.control.CheckBox;
+import javafx.scene.control.*;
 
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
@@ -53,8 +54,23 @@ public class AppStart extends Application {
         debug.setTextFill(Color.WHITE);
         debug.setOnAction(board::debug);
         partyMode.setDisable(true);
+        ColorPicker picker = new ColorPicker();
 
-        top.getChildren().addAll(partyMode, debug);
+        picker.setOnAction(e -> {
+            board.applyToAllSquares(s -> {
+                if (s.getTeam() == SquareTeam.DARK) {
+                    s.setColor(picker.getValue().darker());
+                } else {
+                    s.setColor(picker.getValue().brighter());
+                }
+
+            });
+
+            board.refreshAllSquares();
+
+        });
+
+        top.getChildren().addAll(partyMode, debug, picker);
         boardBacker.getChildren().add(board);
 
         // starting position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
