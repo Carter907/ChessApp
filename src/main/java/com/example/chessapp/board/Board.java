@@ -301,7 +301,6 @@ public class Board extends TilePane {
         else if (turnCount % 2 == 1 && active.getType().getTeam().equals("B"))
             return Collections.singletonMap(PositionType.BLOCKED, null);
 
-        turnCount++;
 
         Square square;
         for (int index : squareIndexes) {

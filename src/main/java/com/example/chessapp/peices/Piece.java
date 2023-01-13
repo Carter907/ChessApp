@@ -138,6 +138,9 @@ public class Piece extends ImageView {
 
                     }
                 }
+                switch (posType) {
+                    case CLEAR, CAPTURE, EN_PASSANT -> piece.board.setTurnCount(piece.board.getTurnCount() + 1);
+                }
 
 
             } else {

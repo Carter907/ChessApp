@@ -61,7 +61,7 @@ public class AppStart extends Application {
                 if (s.getTeam() == SquareTeam.DARK) {
                     s.setColor(picker.getValue().darker());
                 } else {
-                    s.setColor(picker.getValue().brighter());
+                    s.setColor(picker.getValue().brighter().brighter());
                 }
 
             });

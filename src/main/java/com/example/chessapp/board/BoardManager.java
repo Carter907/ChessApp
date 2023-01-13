@@ -117,6 +117,8 @@ public class BoardManager {
         int actualRank = piece.getRank();
         int actualFile = piece.getFile();
 
+
+
         if ((actualFile + 1 == setFile || actualFile - 1 == setFile)
                 && (setRank < actualRank + 2 && setRank > actualRank - 2))
             return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, PositionType.CAPTURE, PositionType.CLEAR);
