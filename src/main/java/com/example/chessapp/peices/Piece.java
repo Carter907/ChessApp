@@ -2,8 +2,8 @@ package com.example.chessapp.peices;
 
 import com.example.chessapp.AppStart;
 import com.example.chessapp.board.Board;
-import com.example.chessapp.board.BoardManager;
-import com.example.chessapp.board.PositionType;
+import com.example.chessapp.model.BoardManager;
+import com.example.chessapp.model.PositionType;
 import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;

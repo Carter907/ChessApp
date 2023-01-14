@@ -1,5 +1,8 @@
 package com.example.chessapp.board;
 
+import com.example.chessapp.model.BoardManager;
+import com.example.chessapp.model.PositionType;
+import com.example.chessapp.model.SquareTeam;
 import com.example.chessapp.peices.Piece;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;

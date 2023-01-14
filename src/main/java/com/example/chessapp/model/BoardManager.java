@@ -1,5 +1,6 @@
-package com.example.chessapp.board;
+package com.example.chessapp.model;
 
+import com.example.chessapp.board.Board;
 import com.example.chessapp.peices.Piece;
 
 import java.util.Arrays;
