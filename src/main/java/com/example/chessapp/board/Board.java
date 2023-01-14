@@ -8,13 +8,16 @@ import javafx.geometry.Pos;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.TilePane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 
 
 public class Board extends TilePane {
@@ -79,19 +82,26 @@ public class Board extends TilePane {
 
     }
 
-    private Square newSquare(int rank, int file, Color color) {
+    private Square newSquare(int rank, int file, SquareTeam team) {
 
 
-        Square square = new Square(rank, file, color);
+        Square square = new Square(rank, file, team);
 
         this.addSquare(square);
 
         return square;
     }
+    public void applyToAllSquares(Consumer<Square> consumer) {
 
+        this.getChildren().stream().filter(e -> e instanceof Square).map(n -> (Square) n).forEach(consumer);
+
+    }
     public Square findSquare(int rank, int file) {
 
         return (Square) this.getChildren().get(((8 - rank) * 8) + file - 1);
+    }
+    public void refreshAllSquares() {
+        this.getChildren().stream().map(n -> (Square) n).forEach(Square::paint);
     }
 
     public Square findSquare(int index) {
@@ -110,8 +120,7 @@ public class Board extends TilePane {
 
     private void addSquare(Square square) {
         squareCount++;
-        if (squareCount > 64)
-            throw new RuntimeException("board size full: cannot add another square");
+        if (squareCount > 64) throw new RuntimeException("board size full: cannot add another square");
 
         this.getChildren().add(square);
 
@@ -126,10 +135,8 @@ public class Board extends TilePane {
 
         for (int ra = SIZE; ra > 0; ra--) {
             for (int fi = 1; fi <= SIZE; fi++) {
-                if ((ra + fi) % 2 == 0)
-                    this.newSquare(ra, fi, lightSquareColor);
-                else
-                    this.newSquare(ra, fi, darkSquareColor);
+                if ((ra + fi) % 2 == 0) this.newSquare(ra, fi, SquareTeam.LIGHT);
+                else this.newSquare(ra, fi, SquareTeam.DARK);
             }
         }
         this.currentPosition = fen;
@@ -146,10 +153,8 @@ public class Board extends TilePane {
 
         for (int ra = SIZE; ra > 0; ra--) {
             for (int fi = 1; fi <= SIZE; fi++) {
-                if ((ra + fi) % 2 == 0)
-                    this.newSquare(ra, fi, darkSquareColor);
-                else
-                    this.newSquare(ra, fi, lightSquareColor);
+                if ((ra + fi) % 2 == 0) this.newSquare(ra, fi, SquareTeam.DARK);
+                else this.newSquare(ra, fi, SquareTeam.LIGHT);
             }
         }
 
@@ -245,9 +250,6 @@ public class Board extends TilePane {
         // need to update board in order for changes to apply
     }
 
-    public void refreshAllSquares() {
-        this.getChildren().stream().map(n -> (Square) n).forEach(Square::paint);
-    }
 
     public Color getDarkSquareColor() {
         return darkSquareColor;
@@ -291,12 +293,11 @@ public class Board extends TilePane {
     public Map<PositionType, Square> checkSquares(Piece active, Integer[] squareIndexes, int targetRank, int targetFile) {
 
         System.out.println(turnCount);
-        if (turnCount % 2 == 0 && active.getType().getTeam().equals("W"))
+        if (turnCount % 2 == 1 && active.getType().getTeam().equals("W"))
             return Collections.singletonMap(PositionType.BLOCKED, null);
-        else if (turnCount % 2 == 1 && active.getType().getTeam().equals("B"))
+        else if (turnCount % 2 == 0 && active.getType().getTeam().equals("B"))
             return Collections.singletonMap(PositionType.BLOCKED, null);
 
-        turnCount++;
 
         Square square;
         for (int index : squareIndexes) {
@@ -318,8 +319,8 @@ public class Board extends TilePane {
 
                     // piece is the same team
 
-                    return Collections.singletonMap(PositionType.BLOCKED, new Square(99, 99, Color.RED));
-            } else if (square.isEnPassant() && square.equals(findSquare(targetRank, targetFile)) && square.positionTurn+2 == turnCount) {
+                    return Collections.singletonMap(PositionType.BLOCKED, new Square(99, 99, SquareTeam.DARK));
+            } else if (square.isEnPassant() && square.equals(findSquare(targetRank, targetFile)) && square.positionTurn + 1 == turnCount) {
                 return Collections.singletonMap(PositionType.EN_PASSANT, null);
 
             } else if (square.isCaptureSquare() && !square.isClearSquare()) {
@@ -349,11 +350,14 @@ public class Board extends TilePane {
         private boolean clearSquare;
         private boolean enPassant;
         private int positionTurn;
+        private SquareTeam team;
 
-        private Square(int rank, int file, Color color) {
+
+        private Square(int rank, int file, SquareTeam team) {
             this.rank = rank;
             this.file = file;
-            this.color = color;
+            this.team = team;
+            this.color = team == SquareTeam.DARK ? darkSquareColor : team == SquareTeam.NULL ? Color.RED : lightSquareColor;
             this.piece = null;
             this.debug = false;
             this.captureSquare = false;
@@ -380,6 +384,10 @@ public class Board extends TilePane {
             }
 
 
+        }
+
+        public SquareTeam getTeam() {
+            return team;
         }
 
         public boolean isEnPassant() {

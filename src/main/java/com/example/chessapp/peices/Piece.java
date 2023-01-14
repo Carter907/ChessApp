@@ -122,7 +122,6 @@ public class Piece extends ImageView {
                 System.out.println(values);
 
 
-
                 switch (posType) {
                     case CLEAR -> piece.setSquarePosition(piece.board.findSquare(rank, file));
                     case BLOCKED -> piece.resetPosition();
@@ -135,8 +134,10 @@ public class Piece extends ImageView {
                         piece.capture(piece.board.findSquare(rank + (piece.getType().team.equals("W") ? 1 : -1), file).getPiece());
                     }
                     case CASTLE -> {
-
                     }
+                }
+                switch (posType) {
+                    case CLEAR, CAPTURE, EN_PASSANT -> piece.board.setTurnCount(piece.board.getTurnCount() + 1);
                 }
 
 
