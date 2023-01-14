@@ -11,4 +11,5 @@ com\example\chessapp\board\Board$Square.class
 com\example\chessapp\board\BoardManager.class
 com\example\chessapp\peices\Piece$1.class
 com\example\chessapp\peices\Piece$PieceType.class
+com\example\chessapp\board\SquareTeam.class
 com\example\chessapp\misc\AnimateUtils.class
