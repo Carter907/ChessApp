@@ -29,7 +29,7 @@ public class Board extends TilePane {
     private int squareCount;
     public final Color defaultDark = Color.web("#8e5e3e").darker().brighter();
     public final Color defaultLight = Color.web("#eec5aa").brighter();
-    private int squareSize;
+    private double squareSize;
     private Color darkSquareColor;
     private Color lightSquareColor;
     private Pane piecePane;
@@ -42,7 +42,7 @@ public class Board extends TilePane {
     public Board() {
     }
 
-    public Board(int squareSize) {
+    public Board(double squareSize) {
         this.squareSize = squareSize;
         this.darkSquareColor = defaultDark;
         this.lightSquareColor = defaultLight;
@@ -232,7 +232,7 @@ public class Board extends TilePane {
         this.squareCount = squareCount;
     }
 
-    public int getSquareSize() {
+    public double getSquareSize() {
         return squareSize;
     }
 
@@ -337,7 +337,7 @@ public class Board extends TilePane {
 
     @Override
     public String toString() {
-        return String.format(Locale.US, "<board squareSize=%d squareCount=%d/>", squareSize, squareCount);
+        return String.format(Locale.US, "<board squareSize=%f squareCount=%d/>", squareSize, squareCount);
     }
 
     public class Square extends StackPane {
