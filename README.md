@@ -3,7 +3,7 @@ A Chess Application made with JavaFX. Still a work in Progress. The plan is to m
 
 here is a preview:
 
-![picture of chess opening](git_assets/chess_ss_1.png)
+![picture of chess opening](git_assets/chess_ss_2.png)
 
 
 ## Usablity
