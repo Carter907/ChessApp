@@ -3,6 +3,8 @@ package com.example.chessapp.peices;
 import com.example.chessapp.AppStart;
 import com.example.chessapp.board.Board;
 import com.example.chessapp.model.BoardManager;
+import com.example.chessapp.model.PieceModel;
+import com.example.chessapp.model.PieceType;
 import com.example.chessapp.model.PositionType;
 import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
@@ -17,20 +19,11 @@ import java.util.Map;
 public class Piece extends ImageView {
     private final PieceType type;
     private Board board;
-    private BoardManager boardManager;
+    private final BoardManager boardManager;
     private Board.Square square;
     private int rank;
     private int file;
-
-    public Piece(PieceType type) {
-        this.rank = rank;
-        this.file = file;
-        this.type = type;
-        this.setImage(type.getImage());
-        this.setViewport(new Rectangle2D(0, 0, this.getImage().getWidth(), this.getImage().getHeight()));
-        this.boardManager = new BoardManager(new Board());
-        this.setOnMouseDragged(PieceMouseEvents.MOUSE_DRAGGED.eventHandler);
-    }
+    private int team;
 
     public Piece(PieceType type, Board board, int rank, int file) {
         this.type = type;
@@ -38,7 +31,7 @@ public class Piece extends ImageView {
         this.rank = rank;
         this.file = file;
         this.boardManager = board.getBoardManager();
-
+        team = type.getTeam();
         this.setImage(type.getImage());
         this.setViewport(new Rectangle2D(0, 0, this.getImage().getWidth(), this.getImage().getHeight()));
         this.setPreserveRatio(true);
@@ -108,7 +101,8 @@ public class Piece extends ImageView {
             int rank = piece.boardManager.yToRank(piece.getBoard().getSquareSize(), piece.getY() - piece.getBoard().getSquareSize());
             int file = piece.boardManager.xToFile(piece.getBoard().getSquareSize(), piece.getX());
 
-            Integer[] squares = piece.boardManager.positionIsLegal(piece, rank, file);
+            Integer[] squares = piece.boardManager.positionIsLegal(
+                    new PieceModel(piece.getType(), piece.getRank(), piece.getFile()), rank, file);
 
             if (squares != null) {
                 Map<PositionType, Board.Square> values = piece.board.checkSquares(piece, squares, rank, file);
@@ -131,7 +125,7 @@ public class Piece extends ImageView {
                     }
                     case EN_PASSANT -> {
                         piece.setSquarePosition(piece.board.findSquare(rank, file));
-                        piece.capture(piece.board.findSquare(rank + (piece.getType().team.equals("W") ? 1 : -1), file).getPiece());
+                        piece.capture(piece.board.findSquare(rank + (piece.getTeam() == PieceType.PIECE_TEAM_WHITE ? 1 : -1), file).getPiece());
                     }
                     case CASTLE -> {
                     }
@@ -164,12 +158,19 @@ public class Piece extends ImageView {
         }
     }
 
-    private void capture(Piece piece) {
+    public BoardManager getBoardManager() {
+        return boardManager;
+    }
+
+    public int getTeam() {
+        return team;
+    }
+
+    public void capture(Piece piece) {
         System.out.println("captured: there is a " + piece.getType()
                 + " on the " + piece.getRank() + " rank and " + piece.getFile() + " file");
         piece.getSquare().setPiece(null);
         piece.getBoard().getPeicePane().getChildren().remove(piece);
-
     }
 
     public void resetPosition() {
@@ -201,59 +202,7 @@ public class Piece extends ImageView {
         return this.rank;
     }
 
-    public enum PieceType {
 
-        PAWN_W(new Image(AppStart.class.getResource("sets/set1/white_pawn.png").toExternalForm())),
-        NIGHT_W(new Image(AppStart.class.getResource("sets/set1/white_knight.png").toExternalForm())),
-        BISHOP_W(new Image(AppStart.class.getResource("sets/set1/white_bishop.png").toExternalForm())),
-        ROOK_W(new Image(AppStart.class.getResource("sets/set1/white_rook.png").toExternalForm())),
-        QUEEN_W(new Image(AppStart.class.getResource("sets/set1/white_queen.png").toExternalForm())),
-        KING_W(new Image(AppStart.class.getResource("sets/set1/white_king.png").toExternalForm())),
-        PAWN_B(new Image(AppStart.class.getResource("sets/set1/black_pawn.png").toExternalForm())),
-        NIGHT_B(new Image(AppStart.class.getResource("sets/set1/black_knight.png").toExternalForm())),
-        BISHOP_B(new Image(AppStart.class.getResource("sets/set1/black_bishop.png").toExternalForm())),
-        ROOK_B(new Image(AppStart.class.getResource("sets/set1/black_rook.png").toExternalForm())),
-        QUEEN_B(new Image(AppStart.class.getResource("sets/set1/black_queen.png").toExternalForm())),
-        KING_B(new Image(AppStart.class.getResource("sets/set1/black_king.png").toExternalForm()));
-
-        private final Image sprite;
-        private final String team;
-        private static PieceType[] pieceTypes = PieceType.values();
-
-        PieceType(Image sprite) {
-            this.sprite = sprite;
-            this.team = ""+name().charAt(name().length()-1);
-        }
-
-        public static PieceType charToPieceType(char c) {
-            for (PieceType piece : pieceTypes) {
-                String name = piece.name();
-                if (Character.isUpperCase(c)
-                        && c == name.charAt(0)
-                        && name.charAt(name.length() - 1) == 'B') {
-                    return piece;
-                } else if (Character.isLowerCase(c)
-                        && c == Character.toLowerCase(name.charAt(0))
-                        && name.charAt(name.length() - 1) == 'W') {
-                    return piece;
-                }
-            }
-            return null;
-        }
-
-        public String getTeam() {
-            return team;
-        }
-
-        public Image getImage() {
-            return sprite;
-        }
-
-        public boolean isOppositeTeam(PieceType type) {
-            System.out.println(!type.team.equals(this.team));
-            return !type.team.equals(this.team);
-        }
-    }
 
     @Override
     public String toString() {

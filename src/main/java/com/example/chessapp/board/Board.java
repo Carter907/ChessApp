@@ -1,6 +1,7 @@
 package com.example.chessapp.board;
 
 import com.example.chessapp.model.BoardManager;
+import com.example.chessapp.model.PieceType;
 import com.example.chessapp.model.PositionType;
 import com.example.chessapp.model.SquareTeam;
 import com.example.chessapp.peices.Piece;
@@ -209,7 +210,7 @@ public class Board extends TilePane {
                 continue;
             }
 
-            piece = new Piece(Piece.PieceType.charToPieceType(ch), this, rank, file);
+            piece = new Piece(PieceType.charToPieceType(ch), this, rank, file);
             System.out.println("add a new " + piece);
             addPiece(piece, rank, file);
         }
@@ -296,9 +297,9 @@ public class Board extends TilePane {
     public Map<PositionType, Square> checkSquares(Piece active, Integer[] squareIndexes, int targetRank, int targetFile) {
 
         System.out.println(turnCount);
-        if (turnCount % 2 == 1 && active.getType().getTeam().equals("W"))
+        if (turnCount % 2 == 1 && active.getTeam() == PieceType.PIECE_TEAM_WHITE)
             return Collections.singletonMap(PositionType.BLOCKED, null);
-        else if (turnCount % 2 == 0 && active.getType().getTeam().equals("B"))
+        else if (turnCount % 2 == 0 && active.getTeam() == PieceType.PIECE_TEAM_BLACK)
             return Collections.singletonMap(PositionType.BLOCKED, null);
 
 
