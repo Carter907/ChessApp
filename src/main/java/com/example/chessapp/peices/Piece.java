@@ -2,10 +2,12 @@ package com.example.chessapp.peices;
 
 import com.example.chessapp.AppStart;
 import com.example.chessapp.board.Board;
+import com.example.chessapp.controller.PieceController;
 import com.example.chessapp.model.BoardManager;
 import com.example.chessapp.model.PieceModel;
 import com.example.chessapp.model.PieceType;
 import com.example.chessapp.model.PositionType;
+import com.example.chessapp.view.PieceView;
 import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
@@ -16,11 +18,13 @@ import java.util.Arrays;
 import java.util.Map;
 
 
-public class Piece extends ImageView {
+public class Piece {
     private final PieceType type;
     private Board board;
     private final BoardManager boardManager;
     private Board.Square square;
+    private PieceView view;
+    private PieceController controller;
     private int rank;
     private int file;
     private int team;
@@ -32,19 +36,12 @@ public class Piece extends ImageView {
         this.file = file;
         this.boardManager = board.getBoardManager();
         team = type.getTeam();
-        this.setImage(type.getImage());
-        this.setViewport(new Rectangle2D(0, 0, this.getImage().getWidth(), this.getImage().getHeight()));
-        this.setPreserveRatio(true);
-        this.setFitHeight(board.getSquareSize() - 10);
-        double aspectRatio = this.getImage().getWidth() / this.getImage().getHeight();
-        this.setTranslateX((-getFitHeight() * aspectRatio / 2));
-        this.setTranslateY((-getFitHeight() / aspectRatio / 2));
-        if (type == PieceType.PAWN_B || type == PieceType.PAWN_W)
-            this.setTranslateY(this.getTranslateY() + 5);
+        view = new PieceView(type, board);
+        controller = new PieceController(view, this);
 
 
-        this.setOnMouseDragged(PieceMouseEvents.MOUSE_DRAGGED.eventHandler);
-        this.setOnMouseReleased(PieceMouseEvents.MOUSE_RELEASED.eventHandler);
+
+
 
     }
 
@@ -68,11 +65,19 @@ public class Piece extends ImageView {
         this.rank = square.getRank();
         this.file = square.getFile();
 
-        this.setX(x);
-        this.setY(y);
+        this.view.setX(x);
+        this.view.setY(y);
 
 //        System.out.println(this);
 
+    }
+
+    public PieceView getView() {
+        return view;
+    }
+
+    public PieceController getController() {
+        return controller;
     }
 
     public boolean hasSquare() {
@@ -92,71 +97,7 @@ public class Piece extends ImageView {
     }
 
 
-    private enum PieceMouseEvents {
-        MOUSE_RELEASED(event -> {
 
-            Piece piece = (Piece) event.getSource();
-
-
-            int rank = piece.boardManager.yToRank(piece.getBoard().getSquareSize(), piece.getY() - piece.getBoard().getSquareSize());
-            int file = piece.boardManager.xToFile(piece.getBoard().getSquareSize(), piece.getX());
-
-            Integer[] squares = piece.boardManager.positionIsLegal(
-                    new PieceModel(piece.getType(), piece.getRank(), piece.getFile()), rank, file);
-
-            if (squares != null) {
-                Map<PositionType, Board.Square> values = piece.board.checkSquares(piece, squares, rank, file);
-                piece.boardManager.resetConstraints(squares);
-                piece.board.refreshAllSquares();
-                piece.boardManager.applyToAllSquares(squares, s -> s.setHighlighted(true));
-
-                PositionType posType = values.entrySet().iterator().next().getKey();
-                Board.Square square = values.entrySet().iterator().next().getValue();
-                System.out.println("squares:" + Arrays.toString(squares));
-                System.out.println(values);
-
-
-                switch (posType) {
-                    case CLEAR -> piece.setSquarePosition(piece.board.findSquare(rank, file));
-                    case BLOCKED -> piece.resetPosition();
-                    case CAPTURE -> {
-                        piece.capture(square.getPiece());
-                        piece.setSquarePosition(piece.board.findSquare(rank, file));
-                    }
-                    case EN_PASSANT -> {
-                        piece.setSquarePosition(piece.board.findSquare(rank, file));
-                        piece.capture(piece.board.findSquare(rank + (piece.getTeam() == PieceType.PIECE_TEAM_WHITE ? 1 : -1), file).getPiece());
-                    }
-                    case CASTLE -> {
-                    }
-                }
-                switch (posType) {
-                    case CLEAR, CAPTURE, EN_PASSANT -> piece.board.setTurnCount(piece.board.getTurnCount() + 1);
-                }
-
-
-            } else {
-                piece.resetPosition();
-            }
-
-
-        }),
-        MOUSE_DRAGGED(event -> {
-
-            Piece piece = (Piece) event.getSource();
-
-            piece.setX(event.getX() + piece.getTranslateX());
-            piece.setY(event.getY() + piece.getTranslateY());
-
-        });
-
-
-        private final EventHandler<MouseEvent> eventHandler;
-
-        PieceMouseEvents(EventHandler<MouseEvent> eventHandler) {
-            this.eventHandler = eventHandler;
-        }
-    }
 
     public BoardManager getBoardManager() {
         return boardManager;

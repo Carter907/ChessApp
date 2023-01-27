@@ -16,8 +16,9 @@ import java.util.Map;
 public class PieceController {
 
     private PieceView pieceView;
+    private Piece piece;
 
-    public PieceController(PieceView pieceView) {
+    public PieceController(PieceView pieceView, Piece piece) {
 
 
         pieceView.setOnMouseDragged(this::mouseReleased);
@@ -26,20 +27,17 @@ public class PieceController {
 
     private void mouseDragged(MouseEvent event) {
 
-
-        Piece piece = (Piece) event.getSource();
-
-        piece.setX(event.getX() + piece.getTranslateX());
-        piece.setY(event.getY() + piece.getTranslateY());
+        pieceView.setX(event.getX() + pieceView.getTranslateX());
+        pieceView.setY(event.getY() + pieceView.getTranslateY());
     }
 
     private void mouseReleased(MouseEvent event) {
-        Piece piece = (Piece) event.getSource();
+
         final BoardManager MANAGER = piece.getBoard().getBoardManager();
         final Board BOARD = piece.getBoard();
 
-        int rank = MANAGER.yToRank(piece.getBoard().getSquareSize(), piece.getY() - piece.getBoard().getSquareSize());
-        int file = MANAGER.xToFile(piece.getBoard().getSquareSize(), piece.getX());
+        int rank = MANAGER.yToRank(piece.getBoard().getSquareSize(), pieceView.getY() - piece.getBoard().getSquareSize());
+        int file = MANAGER.xToFile(piece.getBoard().getSquareSize(), pieceView.getX());
 
         Integer[] squares = MANAGER.positionIsLegal(new PieceModel(piece.getType(), piece.getRank(), piece.getFile()), rank, file);
 

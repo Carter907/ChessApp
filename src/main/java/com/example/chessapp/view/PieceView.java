@@ -22,4 +22,6 @@ public class PieceView extends ImageView {
         if (type == PieceType.PAWN_B || type == PieceType.PAWN_W)
             this.setTranslateY(this.getTranslateY() + 5);
     }
+
+
 }
