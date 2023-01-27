@@ -24,7 +24,7 @@ public class Piece {
     private final BoardManager boardManager;
     private Board.Square square;
     private PieceView view;
-    private PieceController controller;
+    private final PieceController controller;
     private int rank;
     private int file;
     private int team;
@@ -38,10 +38,6 @@ public class Piece {
         team = type.getTeam();
         view = new PieceView(type, board);
         controller = new PieceController(view, this);
-
-
-
-
 
     }
 

@@ -20,18 +20,23 @@ public class PieceController {
 
     public PieceController(PieceView pieceView, Piece piece) {
 
+        this.pieceView = pieceView;
+        this.piece = piece;
 
-        pieceView.setOnMouseDragged(this::mouseReleased);
-        pieceView.setOnMouseReleased(this::mouseDragged);
+        pieceView.setOnMouseDragged(this::mouseDragged);
+        pieceView.setOnMouseReleased(this::mouseReleased);
     }
 
     private void mouseDragged(MouseEvent event) {
+
+
 
         pieceView.setX(event.getX() + pieceView.getTranslateX());
         pieceView.setY(event.getY() + pieceView.getTranslateY());
     }
 
     private void mouseReleased(MouseEvent event) {
+
 
         final BoardManager MANAGER = piece.getBoard().getBoardManager();
         final Board BOARD = piece.getBoard();
@@ -49,7 +54,6 @@ public class PieceController {
 
             PositionType posType = values.entrySet().iterator().next().getKey();
             Board.Square square = values.entrySet().iterator().next().getValue();
-
 
 
             switch (posType) {

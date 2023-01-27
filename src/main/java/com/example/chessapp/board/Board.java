@@ -117,7 +117,7 @@ public class Board extends TilePane {
         Square s = findSquare(rank, file);
 
         piece.setSquarePosition(s);
-        if (!piecePane.getChildren().contains(piece)) {
+        if (!piecePane.getChildren().contains(piece.getView())) {
             piecePane.getChildren().add(piece.getView());
         }
     }
