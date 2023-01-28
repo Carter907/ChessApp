@@ -62,23 +62,29 @@ public class BoardManager {
                 case CAPTURE -> {
                     for (Integer n : indices) {
                         Board.Square square = board.findSquare(n);
-                        square.setCaptureSquare(true);
+                        square.getMoveTypes().replace(MoveType.CAPTURE, true);
                     }
                 }
                 case CLEAR -> {
                     for (Integer n : indices) {
                         Board.Square square = board.findSquare(n);
-                        square.setClearSquare(true);
+                        square.getMoveTypes().replace(MoveType.CLEAR, true);
                     }
                 }
                 case EN_PASSANT -> {
                     for (Integer n : indices) {
                         Board.Square square = board.findSquare(n);
-                        square.setEnPassant(true);
+                        square.getMoveTypes().replace(MoveType.EN_PASSANT, true);
                         square.setPositionTurn(board.getTurnCount());
 
                     }
+                }
+                case SHORT_CASTLE -> {
+                    for (Integer n : indices) {
+                        Board.Square square = board.findSquare(n);
+                        square.getMoveTypes().replace(MoveType.SHORT_CASTLE, true);
 
+                    }
                 }
             }
         }
@@ -90,8 +96,10 @@ public class BoardManager {
     public Integer[] resetConstraints(Integer[] indices) {
         for (Integer n : indices) {
             Board.Square square = board.findSquare(n);
-            square.setCaptureSquare(false);
-            square.setClearSquare(false);
+            square.getMoveTypes().replace(MoveType.CAPTURE, false);
+            square.getMoveTypes().replace(MoveType.CLEAR, false);
+
+            square.getMoveTypes().replace(MoveType.SHORT_CASTLE, false);
 
         }
         return indices;
@@ -111,6 +119,12 @@ public class BoardManager {
             return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.CAPTURE, MoveType.CLEAR);
         if ((currentFile == setFile) && (setRank < currentRank + 2 && setRank > currentRank - 2))
             return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.CAPTURE, MoveType.CLEAR);
+
+        if (currentRank == setRank && setFile == currentFile+2)
+            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.SHORT_CASTLE);
+        if (currentRank == setRank && setFile == currentFile-3)
+            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.LONG_CASTLE);
+
 
         return null;
     }

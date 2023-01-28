@@ -1,4 +1,4 @@
-package com.example.chessapp.board;
+package com.example.chessapp.model;
 
 public enum GameState {
 

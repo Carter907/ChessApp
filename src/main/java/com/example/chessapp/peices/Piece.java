@@ -98,6 +98,9 @@ public class Piece {
         piece.getSquare().setPiece(null);
         piece.getBoard().getPeicePane().getChildren().remove(piece.getView());
     }
+    public boolean isPiece(String pieceName) {
+        return PieceType.isPiece(pieceName, type);
+    }
 
     public void resetPosition() {
         this.board.addPiece(this, rank, file);
@@ -132,7 +135,7 @@ public class Piece {
 
     @Override
     public String toString() {
-        return String.format("<piece square=%s rank=%d file=%d board=%s/>", square, rank, file, board);
+        return String.format("<piece:%s square=%s rank=%d file=%d board=%s/>",type, square, rank, file, board);
     }
 
 }

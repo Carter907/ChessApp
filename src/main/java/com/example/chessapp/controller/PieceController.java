@@ -86,6 +86,8 @@ public class PieceController {
 
         Board.Square targetSquare = board.findSquare(rank, file);
 
+        System.out.println(values);
+
 
         // determine what action to take based on what happend
 
@@ -100,13 +102,44 @@ public class PieceController {
                 piece.capture(board.findSquare(rank + (piece.getTeam() == PieceType.PIECE_TEAM_WHITE ? 1 : -1), file).getPiece());
                 piece.setSquarePosition(targetSquare);
             }
-            case CASTLE -> {
+            case SHORT_CASTLE -> {
+                if (canCastle(board, targetSquare)) {
+                    piece.setSquarePosition(targetSquare);
+                    Piece rook = getCastleRook(board, targetSquare);
+
+                    rook.setSquarePosition(board.findSquare(rank, file-1));
+
+                } else
+                    piece.resetPosition();
+
             }
         }
 
         // set turn changes based on which action occured
 
         updateTurn(moveType, board);
+    }
+
+    private boolean canCastle(Board board, Board.Square target) {
+        Piece piece = board.findSquare(target.getRank(), target.getFile()+1).getPiece();
+        System.out.println("checked if this piece was a rook:" + piece);
+        if (piece.isPiece("rook")) {
+            return true;
+        }
+        return false;
+    }
+
+    private Piece getCastleRook(Board board, Board.Square targetSquare) {
+
+
+
+        Piece piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile()+1).getPiece();
+
+        if (piece.isPiece("rook"))
+            return piece;
+        else
+            throw new IllegalStateException("piece is not a rook or pieces have moved");
+
     }
 
     private void refreshBoard(BoardManager manager, Board board, Integer[] squares) {
@@ -118,7 +151,7 @@ public class PieceController {
     private void updateTurn(MoveType type, Board board) {
 
         switch (type) {
-            case CLEAR, CAPTURE, EN_PASSANT -> board.setTurnCount(board.getTurnCount() + 1);
+            case CLEAR, CAPTURE, EN_PASSANT, SHORT_CASTLE -> board.setTurnCount(board.getTurnCount() + 1);
         }
     }
 

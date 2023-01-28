@@ -47,6 +47,19 @@ public enum PieceType {
         return null;
     }
 
+    public static boolean isPiece(String pieceName, PieceType type) {
+
+        pieceName = pieceName.toLowerCase();
+        String typeName = type.name().substring(0, type.name().indexOf("_")).toLowerCase();
+        switch (pieceName) {
+            case "rook", "pawn", "king", "bishop", "queen", "knight" -> {
+                return pieceName.equals(typeName);
+            }
+        }
+
+        return false;
+    }
+
     public int getTeam() {
         return team;
     }
@@ -66,5 +79,6 @@ public enum PieceType {
     public static PieceType[] getPieceTypes() {
         return pieceTypes;
     }
+
 }
 
