@@ -1,21 +1,10 @@
 package com.example.chessapp.peices;
 
-import com.example.chessapp.AppStart;
 import com.example.chessapp.board.Board;
 import com.example.chessapp.controller.PieceController;
 import com.example.chessapp.model.BoardManager;
-import com.example.chessapp.model.PieceModel;
 import com.example.chessapp.model.PieceType;
-import com.example.chessapp.model.PositionType;
 import com.example.chessapp.view.PieceView;
-import javafx.event.EventHandler;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
-
-import java.util.Arrays;
-import java.util.Map;
 
 
 public class Piece {
@@ -107,7 +96,7 @@ public class Piece {
         System.out.println("captured: there is a " + piece.getType()
                 + " on the " + piece.getRank() + " rank and " + piece.getFile() + " file");
         piece.getSquare().setPiece(null);
-        piece.getBoard().getPeicePane().getChildren().remove(piece);
+        piece.getBoard().getPeicePane().getChildren().remove(piece.getView());
     }
 
     public void resetPosition() {

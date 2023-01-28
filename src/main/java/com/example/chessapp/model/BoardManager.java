@@ -55,9 +55,9 @@ public class BoardManager {
 
     }
 
-    private Integer[] setConstraints(Integer[] indices, PositionType... constraints) {
+    private Integer[] setConstraints(Integer[] indices, MoveType... constraints) {
 
-        for (PositionType constraint : constraints) {
+        for (MoveType constraint : constraints) {
             switch (constraint) {
                 case CAPTURE -> {
                     for (Integer n : indices) {
@@ -108,9 +108,9 @@ public class BoardManager {
 
         if ((currentFile + 1 == setFile || currentFile - 1 == setFile)
                 && (setRank < currentRank + 2 && setRank > currentRank - 2))
-            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, PositionType.CAPTURE, PositionType.CLEAR);
+            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.CAPTURE, MoveType.CLEAR);
         if ((currentFile == setFile) && (setRank < currentRank + 2 && setRank > currentRank - 2))
-            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, PositionType.CAPTURE, PositionType.CLEAR);
+            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.CAPTURE, MoveType.CLEAR);
 
         return null;
     }
@@ -146,7 +146,7 @@ public class BoardManager {
                 }
             }
 
-            return setConstraints(squareArr, PositionType.CAPTURE, PositionType.CLEAR);
+            return setConstraints(squareArr, MoveType.CAPTURE, MoveType.CLEAR);
         }
         return null;
     }
@@ -172,7 +172,7 @@ public class BoardManager {
                         squareArr[squareArr.length - 1] = posToIndex(i, setFile + y);
                     }
                 }
-                return setConstraints(squareArr, PositionType.CAPTURE, PositionType.CLEAR);
+                return setConstraints(squareArr, MoveType.CAPTURE, MoveType.CLEAR);
             } else if ((currentRank + currentFile) == (setRank + setFile)) {
 
                 if (currentRank < setRank) {
@@ -186,7 +186,7 @@ public class BoardManager {
                         squareArr[squareArr.length - 1] = posToIndex(i, setFile - y);
                     }
                 }
-                return setConstraints(squareArr, PositionType.CAPTURE, PositionType.CLEAR);
+                return setConstraints(squareArr, MoveType.CAPTURE, MoveType.CLEAR);
 
             }
         }
@@ -209,12 +209,12 @@ public class BoardManager {
                     return new Integer[]{posToIndex(setRank, setFile)};
                 }
                 if (currentRank + 2 == setRank && currentRank == 2)
-                    return new Integer[]{setConstraints(new Integer[]{posToIndex(setRank - 1, setFile)}, PositionType.EN_PASSANT)[0], posToIndex(setRank, setFile)};
+                    return new Integer[]{setConstraints(new Integer[]{posToIndex(setRank - 1, setFile)}, MoveType.EN_PASSANT)[0], posToIndex(setRank, setFile)};
 
             }
             if (currentRank + 1 == setRank) {
                 if (currentFile + 1 == setFile || currentFile - 1 == setFile)
-                    return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, PositionType.CAPTURE);
+                    return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.CAPTURE);
 
             }
         } else if (type == PieceType.PAWN_W) {
@@ -223,12 +223,12 @@ public class BoardManager {
                     return new Integer[]{posToIndex(setRank, setFile)};
                 }
                 if (currentRank - 2 == setRank && currentRank == 7)
-                    return new Integer[]{setConstraints(new Integer[]{posToIndex(setRank + 1, setFile)}, PositionType.EN_PASSANT)[0], posToIndex(setRank, setFile)};
+                    return new Integer[]{setConstraints(new Integer[]{posToIndex(setRank + 1, setFile)}, MoveType.EN_PASSANT)[0], posToIndex(setRank, setFile)};
 
             }
             if (currentRank - 1 == setRank) {
                 if (currentFile - 1 == setFile || currentFile + 1 == setFile)
-                    return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, PositionType.CAPTURE);
+                    return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.CAPTURE);
 
             }
         }
@@ -253,9 +253,9 @@ public class BoardManager {
     private Integer[] knightPositionLegal(int setRank, int setFile) {
 
         if ((setFile == currentFile - 1 || setFile == currentFile + 1) && (setRank == currentRank + 2 || setRank == currentRank - 2))
-            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, PositionType.CLEAR, PositionType.CAPTURE);
+            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.CLEAR, MoveType.CAPTURE);
         if ((setFile == currentFile - 2 || setFile == currentFile + 2) && (setRank == currentRank + 1 || setRank == currentRank - 1))
-            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, PositionType.CLEAR, PositionType.CAPTURE);
+            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.CLEAR, MoveType.CAPTURE);
 
         return null;
     }

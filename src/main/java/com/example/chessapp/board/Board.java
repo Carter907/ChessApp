@@ -2,7 +2,7 @@ package com.example.chessapp.board;
 
 import com.example.chessapp.model.BoardManager;
 import com.example.chessapp.model.PieceType;
-import com.example.chessapp.model.PositionType;
+import com.example.chessapp.model.MoveType;
 import com.example.chessapp.model.SquareTeam;
 import com.example.chessapp.peices.Piece;
 import javafx.beans.property.BooleanProperty;
@@ -36,6 +36,7 @@ public class Board extends TilePane {
     private Pane piecePane;
     private BooleanProperty debugging;
     private String currentPosition;
+    private GameState gameState;
     private BoardManager boardManager;
     private int turnCount;
 
@@ -44,6 +45,7 @@ public class Board extends TilePane {
     }
 
     public Board(double squareSize) {
+        this.gameState = GameState.PLAYING;
         this.squareSize = squareSize;
         this.darkSquareColor = defaultDark;
         this.lightSquareColor = defaultLight;
@@ -84,6 +86,14 @@ public class Board extends TilePane {
         this.setPrefRows(SIZE);
 
 
+    }
+
+    public GameState getState() {
+        return gameState;
+    }
+
+    public void setState(GameState gameState) {
+        this.gameState = gameState;
     }
 
     private Square newSquare(int rank, int file, SquareTeam team) {
@@ -294,16 +304,16 @@ public class Board extends TilePane {
         }
     }
 
-    public Map<PositionType, Square> checkSquares(Piece active, Integer[] squareIndexes, int targetRank, int targetFile) {
+    public Map<MoveType, Square> checkSquares(Piece active, Integer[] squareIndexes, int targetRank, int targetFile) {
 
         System.out.println(turnCount);
         if (turnCount % 2 == 1 && active.getTeam() == PieceType.PIECE_TEAM_WHITE)
-            return Collections.singletonMap(PositionType.BLOCKED, null);
+            return Collections.singletonMap(MoveType.BLOCKED, null);
         else if (turnCount % 2 == 0 && active.getTeam() == PieceType.PIECE_TEAM_BLACK)
-            return Collections.singletonMap(PositionType.BLOCKED, null);
+            return Collections.singletonMap(MoveType.BLOCKED, null);
 
 
-        Square square;
+        Square square = null;
         for (int index : squareIndexes) {
             square = findSquare(index);
             if (square.hasPiece()) {
@@ -313,27 +323,27 @@ public class Board extends TilePane {
                     // piece can capture another piece
 
                     if (targetRank == dormant.getRank() && targetFile == dormant.getFile() && square.isCaptureSquare())
-                        return Collections.singletonMap(PositionType.CAPTURE, square);
+                        return Collections.singletonMap(MoveType.CAPTURE, square);
                     else
 
                         // piece is blocked by another piece
 
-                        return Collections.singletonMap(PositionType.BLOCKED, square);
+                        return Collections.singletonMap(MoveType.BLOCKED, square);
                 } else
 
                     // piece is the same team
 
-                    return Collections.singletonMap(PositionType.BLOCKED, new Square(99, 99, SquareTeam.DARK));
+                    return Collections.singletonMap(MoveType.BLOCKED, square);
             } else if (square.isEnPassant() && square.equals(findSquare(targetRank, targetFile)) && square.positionTurn + 1 == turnCount) {
-                return Collections.singletonMap(PositionType.EN_PASSANT, null);
+                return Collections.singletonMap(MoveType.EN_PASSANT, square);
 
             } else if (square.isCaptureSquare() && !square.isClearSquare()) {
-                return Collections.singletonMap(PositionType.BLOCKED, null);
+                return Collections.singletonMap(MoveType.BLOCKED, square);
             }
         }
 
 
-        return Collections.singletonMap(PositionType.CLEAR, null);
+        return Collections.singletonMap(MoveType.CLEAR, square);
     }
 
     @Override

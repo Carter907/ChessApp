@@ -1,6 +1,6 @@
 package com.example.chessapp.model;
 
-public enum PositionType {
+public enum MoveType {
     CLEAR,
     BLOCKED,
     CAPTURE,
