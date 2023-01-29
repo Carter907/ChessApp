@@ -103,24 +103,29 @@ public class Board extends TilePane {
 
         return square;
     }
+
     public void applyToAllSquares(Consumer<Square> consumer) {
 
         this.getChildren().stream().filter(e -> e instanceof Square).map(n -> (Square) n).forEach(consumer);
 
     }
+
     public Square findSquare(int rank, int file) {
 
         Square square = (Square) this.getChildren().get(((8 - rank) * 8) + file - 1);
 
 
-
         return square;
     }
+
     public void refreshAllSquares() {
         this.getChildren().stream().map(n -> (Square) n).forEach(Square::paint);
     }
 
     public Square findSquare(int index) {
+        if (index >= this.getChildren().size() || index < 0) {
+            return null;
+        }
         return (Square) this.getChildren().get(index);
     }
 
@@ -128,7 +133,7 @@ public class Board extends TilePane {
 
         Square s = findSquare(rank, file);
 
-        piece.setSquarePosition(s);
+        piece.moveTo(s);
         if (!piecePane.getChildren().contains(piece.getView())) {
             piecePane.getChildren().add(piece.getView());
         }
@@ -308,41 +313,48 @@ public class Board extends TilePane {
 
     public Map<MoveType, Square> checkSquares(Piece active, Integer[] squareIndexes, int targetRank, int targetFile) {
 
-        System.out.println(turnCount);
-        if (turnCount % 2 == 1 && active.getTeam() == PieceType.PIECE_TEAM_WHITE)
-            return Collections.singletonMap(MoveType.BLOCKED, null);
-        else if (turnCount % 2 == 0 && active.getTeam() == PieceType.PIECE_TEAM_BLACK)
-            return Collections.singletonMap(MoveType.BLOCKED, null);
-
 
         Square square = null;
         for (int index : squareIndexes) {
+
+            // get square to check
+
             square = findSquare(index);
+
+            // does unchecked square contain a piece?
+
             if (square.hasPiece()) {
                 Piece dormant = square.getPiece();
                 if (dormant.getType().isOppositeTeam(active.getType())) {
-
-
-
                     // piece can capture another piece
                     if (targetRank == dormant.getRank() && targetFile == dormant.getFile() && square.moveTypes.get(MoveType.CAPTURE))
                         return Collections.singletonMap(MoveType.CAPTURE, square);
                     else
-
                         // piece is blocked by another piece
 
                         return Collections.singletonMap(MoveType.BLOCKED, square);
                 } else
-
                     // piece is the same team
-
                     return Collections.singletonMap(MoveType.BLOCKED, square);
-            } else if (square.moveTypes.get(MoveType.EN_PASSANT) && square.equals(findSquare(targetRank, targetFile)) && square.positionTurn + 1 == turnCount) {
+
+                // unchecked square does not have a piece on it
+
+                // is unchecked square an enpassant square?
+            } else if (square.moveTypes.get(MoveType.EN_PASSANT) &&
+                    square.equals(findSquare(targetRank, targetFile)) && square.positionTurn + 1 == turnCount)
                 return Collections.singletonMap(MoveType.EN_PASSANT, square);
-            } else if (square.moveTypes.get(MoveType.CAPTURE) && !square.moveTypes.get(MoveType.CLEAR)) {
+
+                // is unchecked square a capture but not a clear square?
+            else if (square.moveTypes.get(MoveType.CAPTURE) && !square.moveTypes.get(MoveType.CLEAR))
                 return Collections.singletonMap(MoveType.BLOCKED, square);
-            } else if (square.moveTypes.get(MoveType.SHORT_CASTLE))
+
+                // is unchecked square a short castle square?
+            else if (square.moveTypes.get(MoveType.SHORT_CASTLE))
                 return Collections.singletonMap(MoveType.SHORT_CASTLE, square);
+                // is unchecked square a long castle square?
+            else if (square.moveTypes.get(MoveType.LONG_CASTLE))
+                return Collections.singletonMap(MoveType.LONG_CASTLE, square);
+
         }
 
 
@@ -451,13 +463,18 @@ public class Board extends TilePane {
             this.piece = piece;
         }
 
-        public void setHighlighted(boolean b) {
+        public void setHighlighted(boolean isHighlighted) {
 
-            if (b)
-                this.surface.setFill(Color.YELLOW);
+            if (isHighlighted) {
+                int r = Math.min((int)((color.getRed()*255)*1.3), 255);
+                int g = Math.min((int)((color.getGreen()*255)*1.3), 255);
+                int b = (int)(color.getBlue()*255);
+                this.surface.setFill(
+                        Color.rgb(r, g, b));
+            }
             else
                 this.surface.setFill(color);
-            this.highlighted = b;
+            this.highlighted = isHighlighted;
         }
 
         public Integer getIndex() {

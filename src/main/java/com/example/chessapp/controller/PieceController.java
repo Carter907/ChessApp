@@ -9,6 +9,7 @@ import com.example.chessapp.peices.Piece;
 import com.example.chessapp.view.PieceView;
 import javafx.scene.input.MouseEvent;
 
+import java.util.Arrays;
 import java.util.Map;
 
 public class PieceController {
@@ -40,8 +41,6 @@ public class PieceController {
 
     private void movePiece(MouseEvent event) {
 
-
-
         final BoardManager manager = piece.getBoard().getBoardManager();
         final Board board = piece.getBoard();
 
@@ -56,18 +55,22 @@ public class PieceController {
         int rank = manager.yToRank(piece.getBoard().getSquareSize(), pieceView.getY() - piece.getBoard().getSquareSize());
         int file = manager.xToFile(piece.getBoard().getSquareSize(), pieceView.getX());
 
-        // get the squares that player wants to check for their move
+        // get the squares that player wants to check for their moveTo
 
         Integer[] squares = manager.positionIsLegal(new PieceModel(piece.getType(), piece.getRank(), piece.getFile()), rank, file);
 
-        // if squares is null that means the position was not legal.
+        // checking for turn and other conditions are met to see if the position is legal. If not, the piece
+        // is automatically reset and the method returns.
 
-        if (squares == null) {
+        System.out.println(board.getTurnCount());
+        if ((board.getTurnCount() % 2 == 1 && piece.getTeam() == PieceType.PIECE_TEAM_WHITE) ||
+                (board.getTurnCount() % 2 == 0 && piece.getTeam() == PieceType.PIECE_TEAM_BLACK) ||
+                (squares == null || Arrays.binarySearch(squares, -1) >= 0) ) {
             piece.resetPosition();
             return;
         }
 
-        // check the legality of the move based on pieces on the board and other conditions that game up the game of Chess
+        // check the legality of the moveTo based on pieces on the board and other conditions that game up the game of Chess
 
         Map<MoveType, Board.Square> values = board.checkSquares(piece, squares, rank, file);
 
@@ -92,22 +95,33 @@ public class PieceController {
         // determine what action to take based on what happend
 
         switch (moveType) {
-            case CLEAR -> piece.setSquarePosition(targetSquare);
+            case CLEAR -> piece.moveTo(targetSquare);
             case BLOCKED -> piece.resetPosition();
             case CAPTURE -> {
                 piece.capture(checkedSquare.getPiece());
-                piece.setSquarePosition(targetSquare);
+                piece.moveTo(targetSquare);
             }
             case EN_PASSANT -> {
                 piece.capture(board.findSquare(rank + (piece.getTeam() == PieceType.PIECE_TEAM_WHITE ? 1 : -1), file).getPiece());
-                piece.setSquarePosition(targetSquare);
+                piece.moveTo(targetSquare);
             }
             case SHORT_CASTLE -> {
-                if (canCastle(board, targetSquare)) {
-                    piece.setSquarePosition(targetSquare);
-                    Piece rook = getCastleRook(board, targetSquare);
+                if (canCastleShort(board, targetSquare)) {
+                    piece.moveTo(targetSquare);
+                    Piece rook = getCastleRook(board, targetSquare, MoveType.SHORT_CASTLE);
 
-                    rook.setSquarePosition(board.findSquare(rank, file-1));
+                    rook.moveTo(board.findSquare(rank, file-1));
+
+                } else
+                    piece.resetPosition();
+
+            }
+            case LONG_CASTLE -> {
+                if (canCastleLong(board, targetSquare)) {
+                    piece.moveTo(targetSquare);
+                    Piece rook = getCastleRook(board, targetSquare, MoveType.LONG_CASTLE);
+
+                    rook.moveTo(board.findSquare(rank, file+1));
 
                 } else
                     piece.resetPosition();
@@ -120,7 +134,23 @@ public class PieceController {
         updateTurn(moveType, board);
     }
 
-    private boolean canCastle(Board board, Board.Square target) {
+    private boolean canCastleLong(Board board, Board.Square targetSquare) {
+
+        // TODO: add checks for castling long
+
+        Piece piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile()-2).getPiece();
+        System.out.println("checked if this piece was a rook:" + piece);
+        if (piece.isPiece("rook")) {
+            return true;
+        }
+        return false;
+
+    }
+
+    private boolean canCastleShort(Board board, Board.Square target) {
+
+        //TODO: add checks for castling short
+
         Piece piece = board.findSquare(target.getRank(), target.getFile()+1).getPiece();
         System.out.println("checked if this piece was a rook:" + piece);
         if (piece.isPiece("rook")) {
@@ -129,12 +159,13 @@ public class PieceController {
         return false;
     }
 
-    private Piece getCastleRook(Board board, Board.Square targetSquare) {
+    private Piece getCastleRook(Board board, Board.Square targetSquare, MoveType type) {
 
-
-
-        Piece piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile()+1).getPiece();
-
+        Piece piece = null;
+        if (type == MoveType.SHORT_CASTLE)
+         piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile()+1).getPiece();
+        else if (type == MoveType.LONG_CASTLE)
+            piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile()-2).getPiece();
         if (piece.isPiece("rook"))
             return piece;
         else
@@ -150,9 +181,11 @@ public class PieceController {
 
     private void updateTurn(MoveType type, Board board) {
 
-        switch (type) {
-            case CLEAR, CAPTURE, EN_PASSANT, SHORT_CASTLE -> board.setTurnCount(board.getTurnCount() + 1);
-        }
+        if (type == MoveType.BLOCKED)
+            return;
+
+        board.setTurnCount(board.getTurnCount() + 1);
+
     }
 
 

@@ -38,7 +38,7 @@ public class Piece {
         return board;
     }
 
-    public void setSquarePosition(Board.Square square) {
+    public void moveTo(Board.Square square) {
         if (square == null) {
             this.square = null;
             return;
