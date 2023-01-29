@@ -121,7 +121,9 @@ public class BoardManager {
             return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.CAPTURE, MoveType.CLEAR);
 
         if (currentRank == setRank && setFile == currentFile+2)
-            return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.SHORT_CASTLE);
+            return new Integer[]{posToIndex(setRank, setFile-1), setConstraints(new Integer[]{posToIndex(setRank, setFile)},
+                    MoveType.SHORT_CASTLE)[0]};
+
         if (currentRank == setRank && setFile == currentFile-3)
             return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.LONG_CASTLE);
 
