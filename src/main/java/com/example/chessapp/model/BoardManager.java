@@ -62,7 +62,7 @@ public class BoardManager {
     }
 
     private Integer[] setConstraints(Integer[] indices, MoveType... constraints) {
-
+        // TODO: return squares to check without effecting the squares themselves.
         for (MoveType constraint : constraints) {
             for (int i = 0; i < indices.length; i++) {
                 int n = indices[i];

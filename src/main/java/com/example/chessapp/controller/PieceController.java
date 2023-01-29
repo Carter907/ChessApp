@@ -1,15 +1,16 @@
 package com.example.chessapp.controller;
 
 import com.example.chessapp.board.Board;
-import com.example.chessapp.model.BoardManager;
-import com.example.chessapp.model.PieceModel;
-import com.example.chessapp.model.PieceType;
-import com.example.chessapp.model.MoveType;
+import com.example.chessapp.board.BoardConfig;
+import com.example.chessapp.model.*;
 import com.example.chessapp.peices.Piece;
 import com.example.chessapp.view.PieceView;
+import javafx.scene.control.Alert;
 import javafx.scene.input.MouseEvent;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class PieceController {
@@ -63,9 +64,16 @@ public class PieceController {
         // is automatically reset and the method returns.
 
         System.out.println(board.getTurnCount());
-        if ((board.getTurnCount() % 2 == 1 && piece.getTeam() == PieceType.PIECE_TEAM_WHITE) ||
-                (board.getTurnCount() % 2 == 0 && piece.getTeam() == PieceType.PIECE_TEAM_BLACK) ||
-                (squares == null || Arrays.binarySearch(squares, -1) >= 0) ) {
+
+        if (BoardConfig.isTurnBased) {
+            if ((board.getTurnCount() % 2 == 1 && piece.getTeam() == PieceType.PIECE_TEAM_WHITE) ||
+                    (board.getTurnCount() % 2 == 0 && piece.getTeam() == PieceType.PIECE_TEAM_BLACK)) {
+                piece.resetPosition();
+                return;
+            }
+        }
+
+        if (squares == null || Arrays.binarySearch(squares, -1) >= 0) {
             piece.resetPosition();
             return;
         }
@@ -80,9 +88,9 @@ public class PieceController {
 
 
         /* get the move type for the move. What kind of move was it
-        * a capture, a regular move with no peices in the way is called 'CLEAR',
-        * while a blocked move is called BLOCK.
-        */
+         * a capture, a regular move with no peices in the way is called 'CLEAR',
+         * while a blocked move is called BLOCK.
+         */
 
         MoveType moveType = values.entrySet().iterator().next().getKey();
         Board.Square checkedSquare = values.entrySet().iterator().next().getValue();
@@ -98,8 +106,15 @@ public class PieceController {
             case CLEAR -> piece.moveTo(targetSquare);
             case BLOCKED -> piece.resetPosition();
             case CAPTURE -> {
-                piece.capture(checkedSquare.getPiece());
+                Piece enemy = checkedSquare.getPiece();
+
+                if (enemy.isPiece("king"))
+                    captureKing(enemy);
+
+                piece.capture(enemy);
                 piece.moveTo(targetSquare);
+
+
             }
             case EN_PASSANT -> {
                 piece.capture(board.findSquare(rank + (piece.getTeam() == PieceType.PIECE_TEAM_WHITE ? 1 : -1), file).getPiece());
@@ -110,7 +125,7 @@ public class PieceController {
                     piece.moveTo(targetSquare);
                     Piece rook = getCastleRook(board, targetSquare, MoveType.SHORT_CASTLE);
 
-                    rook.moveTo(board.findSquare(rank, file-1));
+                    rook.moveTo(board.findSquare(rank, file - 1));
 
                 } else
                     piece.resetPosition();
@@ -121,7 +136,7 @@ public class PieceController {
                     piece.moveTo(targetSquare);
                     Piece rook = getCastleRook(board, targetSquare, MoveType.LONG_CASTLE);
 
-                    rook.moveTo(board.findSquare(rank, file+1));
+                    rook.moveTo(board.findSquare(rank, file + 1));
 
                 } else
                     piece.resetPosition();
@@ -132,13 +147,49 @@ public class PieceController {
         // set turn changes based on which action occured
 
         updateTurn(moveType, board);
+
+        // go through each piece and check movable squares
+        if (BoardConfig.hasMobilityHighlighting)
+            updateMovabilityHighlighting(board, manager);
+    }
+
+    private void updateMovabilityHighlighting(Board board, BoardManager manager) {
+        ArrayList<Integer> squares = new ArrayList<>();
+        for (int rank = 1; rank <= 8; rank++) {
+            for (int file = 1; file <= 8; file++) {
+
+                Integer[] squareInts = manager.positionIsLegal(new PieceModel(piece.getType(), piece.getRank(), piece.getFile()), rank, file);
+                if (squareInts == null || Arrays.binarySearch(squareInts, -1) >= 0)
+                    continue;
+                squares.addAll(List.of(squareInts));
+            }
+        }
+
+
+
+        for (Integer index : squares) {
+            Board.Square square = board.findSquare(index);
+
+            square.setHighlighted(true);
+        }
+
+    }
+
+    private void captureKing(Piece enemy) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        if (enemy.getTeam() == PieceType.PIECE_TEAM_WHITE)
+            alert.setContentText("Black has captured the white king!");
+        else
+            alert.setContentText("White has captured the black king!");
+
+        alert.show();
     }
 
     private boolean canCastleLong(Board board, Board.Square targetSquare) {
 
         // TODO: add checks for castling long
 
-        Piece piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile()-2).getPiece();
+        Piece piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile() - 2).getPiece();
         System.out.println("checked if this piece was a rook:" + piece);
         if (piece.isPiece("rook")) {
             return true;
@@ -151,7 +202,7 @@ public class PieceController {
 
         //TODO: add checks for castling short
 
-        Piece piece = board.findSquare(target.getRank(), target.getFile()+1).getPiece();
+        Piece piece = board.findSquare(target.getRank(), target.getFile() + 1).getPiece();
         System.out.println("checked if this piece was a rook:" + piece);
         if (piece.isPiece("rook")) {
             return true;
@@ -163,9 +214,9 @@ public class PieceController {
 
         Piece piece = null;
         if (type == MoveType.SHORT_CASTLE)
-         piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile()+1).getPiece();
+            piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile() + 1).getPiece();
         else if (type == MoveType.LONG_CASTLE)
-            piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile()-2).getPiece();
+            piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile() - 2).getPiece();
         if (piece.isPiece("rook"))
             return piece;
         else
@@ -176,6 +227,7 @@ public class PieceController {
     private void refreshBoard(BoardManager manager, Board board, Integer[] squares) {
         manager.resetConstraints(squares);
         board.refreshAllSquares();
+        if (BoardConfig.hasMoveHighlighting)
         manager.applyToAllSquares(squares, s -> s.setHighlighted(true));
     }
 

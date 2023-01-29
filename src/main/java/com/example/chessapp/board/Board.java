@@ -341,7 +341,8 @@ public class Board extends TilePane {
 
                 // is unchecked square an enpassant square?
             } else if (square.moveTypes.get(MoveType.EN_PASSANT) &&
-                    square.equals(findSquare(targetRank, targetFile)) && square.positionTurn + 1 == turnCount)
+                    square.equals(findSquare(targetRank, targetFile)) &&
+                    square.positionTurn + 1 == turnCount && active.isPiece("pawn"))
                 return Collections.singletonMap(MoveType.EN_PASSANT, square);
 
                 // is unchecked square a capture but not a clear square?
@@ -365,6 +366,7 @@ public class Board extends TilePane {
     public String toString() {
         return String.format(Locale.US, "<board squareSize=%f squareCount=%d/>", squareSize, squareCount);
     }
+
 
     public class Square extends StackPane {
 
