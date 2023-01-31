@@ -2,6 +2,7 @@ package com.example.chessapp.model;
 
 import com.example.chessapp.board.Board;
 import com.example.chessapp.peices.Piece;
+import javafx.scene.paint.Color;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -21,6 +22,12 @@ public class BoardManager {
         currentRank = pieceModel.getRank();
         currentFile = pieceModel.getFile();
         type = pieceModel.getType();
+
+        System.out.println("current rank: " + currentRank);
+        System.out.println("current file: " + currentFile);
+        System.out.println("current type: " + type);
+        System.out.println("current team: " + team);
+
 
         switch (pieceModel.getType()) {
             case PAWN_B, PAWN_W -> {
@@ -47,7 +54,6 @@ public class BoardManager {
 
     private Integer[] queenPositionLegal(int setRank, int setFile) {
 
-
         if (currentRank != setRank && currentFile != setFile)
             return bishopPositionLegal(setRank, setFile);
         else
@@ -56,28 +62,20 @@ public class BoardManager {
     }
 
     private Integer[] setConstraints(Integer[] indices, MoveType... constraints) {
-
+        // TODO: return squares to check without effecting the squares themselves.
         for (MoveType constraint : constraints) {
-            switch (constraint) {
-                case CAPTURE -> {
-                    for (Integer n : indices) {
-                        Board.Square square = board.findSquare(n);
-                        square.setCaptureSquare(true);
-                    }
+            for (int i = 0; i < indices.length; i++) {
+                int n = indices[i];
+                Board.Square square = board.findSquare(n);
+                if (square == null) {
+                    indices[i] = -1;
+                    return indices;
                 }
-                case CLEAR -> {
-                    for (Integer n : indices) {
-                        Board.Square square = board.findSquare(n);
-                        square.setClearSquare(true);
-                    }
-                }
-                case EN_PASSANT -> {
-                    for (Integer n : indices) {
-                        Board.Square square = board.findSquare(n);
-                        square.setEnPassant(true);
-                        square.setPositionTurn(board.getTurnCount());
+                square.getMoveTypes().replace(constraint, true);
 
-                    }
+                if (constraint == MoveType.EN_PASSANT) {
+                    board.refreshAllSquares();
+                    square.setPositionTurn(board.getTurnCount());
 
                 }
             }
@@ -90,8 +88,12 @@ public class BoardManager {
     public Integer[] resetConstraints(Integer[] indices) {
         for (Integer n : indices) {
             Board.Square square = board.findSquare(n);
-            square.setCaptureSquare(false);
-            square.setClearSquare(false);
+            square.getMoveTypes().replace(MoveType.CAPTURE, false);
+            square.getMoveTypes().replace(MoveType.CLEAR, false);
+            if (square.getPositionTurn()+1 == board.getTurnCount())
+            square.getMoveTypes().replace(MoveType.EN_PASSANT, false);
+
+            square.getMoveTypes().replace(MoveType.SHORT_CASTLE, false);
 
         }
         return indices;
@@ -111,6 +113,15 @@ public class BoardManager {
             return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.CAPTURE, MoveType.CLEAR);
         if ((currentFile == setFile) && (setRank < currentRank + 2 && setRank > currentRank - 2))
             return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.CAPTURE, MoveType.CLEAR);
+
+        if (currentRank == setRank && setFile == currentFile+2)
+            return new Integer[]{posToIndex(setRank, setFile-1), setConstraints(new Integer[]{posToIndex(setRank, setFile)},
+                    MoveType.SHORT_CASTLE)[0]};
+
+        if (currentRank == setRank && setFile == currentFile-2)
+            return new Integer[]{posToIndex(setRank, setFile+1), setConstraints(new Integer[]{posToIndex(setRank, setFile)},
+                    MoveType.LONG_CASTLE)[0]};
+
 
         return null;
     }
@@ -156,7 +167,6 @@ public class BoardManager {
         int actualIndex = posToIndex(currentRank, currentFile);
         int setIndex = posToIndex(setRank, setFile);
         //capture clear
-        //TODO: figure out how to get all squares of a moving bishop
         if (actualIndex != setIndex) {
             Integer[] squareArr = new Integer[0];
             if ((currentFile - currentRank) == (setFile - setRank)) {

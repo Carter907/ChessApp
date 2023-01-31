@@ -4,6 +4,13 @@ public enum MoveType {
     CLEAR,
     BLOCKED,
     CAPTURE,
-    CASTLE,
-    EN_PASSANT
+    SHORT_CASTLE,
+    LONG_CASTLE,
+    EN_PASSANT;
+
+    public static final MoveType[] values;
+
+    static {
+        values = values();
+    }
 }
