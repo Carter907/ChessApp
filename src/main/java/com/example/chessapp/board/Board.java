@@ -1,8 +1,6 @@
 package com.example.chessapp.board;
 
-import com.example.chessapp.model.BoardManager;
-import com.example.chessapp.model.PositionType;
-import com.example.chessapp.model.SquareTeam;
+import com.example.chessapp.model.*;
 import com.example.chessapp.peices.Piece;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -18,6 +16,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -35,6 +34,7 @@ public class Board extends TilePane {
     private Pane piecePane;
     private BooleanProperty debugging;
     private String currentPosition;
+    private GameState gameState;
     private BoardManager boardManager;
     private int turnCount;
 
@@ -43,6 +43,7 @@ public class Board extends TilePane {
     }
 
     public Board(double squareSize) {
+        this.gameState = GameState.PLAYING;
         this.squareSize = squareSize;
         this.darkSquareColor = defaultDark;
         this.lightSquareColor = defaultLight;
@@ -85,6 +86,14 @@ public class Board extends TilePane {
 
     }
 
+    public GameState getState() {
+        return gameState;
+    }
+
+    public void setState(GameState gameState) {
+        this.gameState = gameState;
+    }
+
     private Square newSquare(int rank, int file, SquareTeam team) {
 
 
@@ -94,20 +103,29 @@ public class Board extends TilePane {
 
         return square;
     }
+
     public void applyToAllSquares(Consumer<Square> consumer) {
 
         this.getChildren().stream().filter(e -> e instanceof Square).map(n -> (Square) n).forEach(consumer);
 
     }
+
     public Square findSquare(int rank, int file) {
 
-        return (Square) this.getChildren().get(((8 - rank) * 8) + file - 1);
+        Square square = (Square) this.getChildren().get(((8 - rank) * 8) + file - 1);
+
+
+        return square;
     }
+
     public void refreshAllSquares() {
         this.getChildren().stream().map(n -> (Square) n).forEach(Square::paint);
     }
 
     public Square findSquare(int index) {
+        if (index >= this.getChildren().size() || index < 0) {
+            return null;
+        }
         return (Square) this.getChildren().get(index);
     }
 
@@ -115,9 +133,9 @@ public class Board extends TilePane {
 
         Square s = findSquare(rank, file);
 
-        piece.setSquarePosition(s);
-        if (!piecePane.getChildren().contains(piece)) {
-            piecePane.getChildren().add(piece);
+        piece.moveTo(s);
+        if (!piecePane.getChildren().contains(piece.getView())) {
+            piecePane.getChildren().add(piece.getView());
         }
     }
 
@@ -209,7 +227,7 @@ public class Board extends TilePane {
                 continue;
             }
 
-            piece = new Piece(Piece.PieceType.charToPieceType(ch), this, rank, file);
+            piece = new Piece(PieceType.charToPieceType(ch), this, rank, file);
             System.out.println("add a new " + piece);
             addPiece(piece, rank, file);
         }
@@ -293,52 +311,62 @@ public class Board extends TilePane {
         }
     }
 
-    public Map<PositionType, Square> checkSquares(Piece active, Integer[] squareIndexes, int targetRank, int targetFile) {
-
-        System.out.println(turnCount);
-        if (turnCount % 2 == 1 && active.getType().getTeam().equals("W"))
-            return Collections.singletonMap(PositionType.BLOCKED, null);
-        else if (turnCount % 2 == 0 && active.getType().getTeam().equals("B"))
-            return Collections.singletonMap(PositionType.BLOCKED, null);
+    public Map<MoveType, Square> checkSquares(Piece active, Integer[] squareIndexes, int targetRank, int targetFile) {
 
 
-        Square square;
+        Square square = null;
         for (int index : squareIndexes) {
+
+            // get square to check
+
             square = findSquare(index);
+
+            // does unchecked square contain a piece?
+
             if (square.hasPiece()) {
                 Piece dormant = square.getPiece();
                 if (dormant.getType().isOppositeTeam(active.getType())) {
-
                     // piece can capture another piece
-
-                    if (targetRank == dormant.getRank() && targetFile == dormant.getFile() && square.isCaptureSquare())
-                        return Collections.singletonMap(PositionType.CAPTURE, square);
+                    if (targetRank == dormant.getRank() && targetFile == dormant.getFile() && square.moveTypes.get(MoveType.CAPTURE))
+                        return Collections.singletonMap(MoveType.CAPTURE, square);
                     else
-
                         // piece is blocked by another piece
 
-                        return Collections.singletonMap(PositionType.BLOCKED, square);
+                        return Collections.singletonMap(MoveType.BLOCKED, square);
                 } else
-
                     // piece is the same team
+                    return Collections.singletonMap(MoveType.BLOCKED, square);
 
-                    return Collections.singletonMap(PositionType.BLOCKED, new Square(99, 99, SquareTeam.DARK));
-            } else if (square.isEnPassant() && square.equals(findSquare(targetRank, targetFile)) && square.positionTurn + 1 == turnCount) {
-                return Collections.singletonMap(PositionType.EN_PASSANT, null);
+                // unchecked square does not have a piece on it
 
-            } else if (square.isCaptureSquare() && !square.isClearSquare()) {
-                return Collections.singletonMap(PositionType.BLOCKED, null);
-            }
+                // is unchecked square an enpassant square?
+            } else if (square.moveTypes.get(MoveType.EN_PASSANT) &&
+                    square.equals(findSquare(targetRank, targetFile)) &&
+                    square.positionTurn + 1 == turnCount && active.isPiece("pawn"))
+                return Collections.singletonMap(MoveType.EN_PASSANT, square);
+
+                // is unchecked square a capture but not a clear square?
+            else if (square.moveTypes.get(MoveType.CAPTURE) && !square.moveTypes.get(MoveType.CLEAR))
+                return Collections.singletonMap(MoveType.BLOCKED, square);
+
+                // is unchecked square a short castle square?
+            else if (square.moveTypes.get(MoveType.SHORT_CASTLE))
+                return Collections.singletonMap(MoveType.SHORT_CASTLE, square);
+                // is unchecked square a long castle square?
+            else if (square.moveTypes.get(MoveType.LONG_CASTLE))
+                return Collections.singletonMap(MoveType.LONG_CASTLE, square);
+
         }
 
 
-        return Collections.singletonMap(PositionType.CLEAR, null);
+        return Collections.singletonMap(MoveType.CLEAR, square);
     }
 
     @Override
     public String toString() {
         return String.format(Locale.US, "<board squareSize=%f squareCount=%d/>", squareSize, squareCount);
     }
+
 
     public class Square extends StackPane {
 
@@ -348,10 +376,8 @@ public class Board extends TilePane {
         private Color color;
         private Piece piece;
         private Rectangle surface;
+        private final HashMap<MoveType, Boolean> moveTypes;
         private boolean highlighted;
-        private boolean captureSquare;
-        private boolean clearSquare;
-        private boolean enPassant;
         private int positionTurn;
         private SquareTeam team;
 
@@ -363,9 +389,18 @@ public class Board extends TilePane {
             this.color = team == SquareTeam.DARK ? darkSquareColor : team == SquareTeam.NULL ? Color.RED : lightSquareColor;
             this.piece = null;
             this.debug = false;
-            this.captureSquare = false;
+            this.moveTypes = new HashMap<>();
+            fillSquareTypes();
+
             paint();
 
+        }
+
+        private void fillSquareTypes() {
+
+            for (MoveType type : MoveType.values) {
+                moveTypes.put(type, false);
+            }
         }
 
         public void refresh() {
@@ -389,25 +424,14 @@ public class Board extends TilePane {
 
         }
 
+        public HashMap<MoveType, Boolean> getMoveTypes() {
+            return moveTypes;
+        }
+
         public SquareTeam getTeam() {
             return team;
         }
 
-        public boolean isEnPassant() {
-            return enPassant;
-        }
-
-        public void setEnPassant(boolean enPassant) {
-            this.enPassant = enPassant;
-        }
-
-        public boolean isClearSquare() {
-            return clearSquare;
-        }
-
-        public void setClearSquare(boolean clearSquare) {
-            this.clearSquare = clearSquare;
-        }
 
         public Rectangle getSurface() {
             return surface;
@@ -441,13 +465,18 @@ public class Board extends TilePane {
             this.piece = piece;
         }
 
-        public void setHighlighted(boolean b) {
+        public void setHighlighted(boolean isHighlighted) {
 
-            if (b)
-                this.surface.setFill(Color.YELLOW);
+            if (isHighlighted) {
+                int r = Math.min((int)((color.getRed()*255)*1.3), 255);
+                int g = Math.min((int)((color.getGreen()*255)*1.3), 255);
+                int b = (int)(color.getBlue()*255);
+                this.surface.setFill(
+                        Color.rgb(r, g, b));
+            }
             else
                 this.surface.setFill(color);
-            this.highlighted = b;
+            this.highlighted = isHighlighted;
         }
 
         public Integer getIndex() {
@@ -467,19 +496,18 @@ public class Board extends TilePane {
             this.color = color;
         }
 
-        public void setCaptureSquare(boolean captureSquare) {
-            this.captureSquare = captureSquare;
-        }
-
-        public boolean isCaptureSquare() {
-            return this.captureSquare;
-        }
 
         @Override
         public String toString() {
             return String.format("<square rank=%d file=%d board=%s/>", rank, file, Board.this);
         }
 
+        public void setRank(int rank) {
+            this.rank = rank;
+        }
 
+        public void setFile(int file) {
+            this.file = file;
+        }
     }
 }
