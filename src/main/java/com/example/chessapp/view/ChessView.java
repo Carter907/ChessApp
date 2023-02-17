@@ -40,7 +40,7 @@ public class ChessView extends View {
 
         // starting position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
 
-        board.init("8/8/8/8/4Q3/8/8/8");
+        board.init("8/2p5/4q2/8/4Q3/8/1PP5/8");
 
 
         this.getChildren().add(root);

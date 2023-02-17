@@ -85,13 +85,14 @@ public class BoardManager {
         return indices;
     }
 
+
     public Integer[] resetConstraints(Integer[] indices) {
         for (Integer n : indices) {
             Board.Square square = board.findSquare(n);
             square.getMoveTypes().replace(MoveType.CAPTURE, false);
             square.getMoveTypes().replace(MoveType.CLEAR, false);
-            if (square.getPositionTurn()+1 == board.getTurnCount())
-            square.getMoveTypes().replace(MoveType.EN_PASSANT, false);
+            if (square.getPositionTurn() + 1 == board.getTurnCount())
+                square.getMoveTypes().replace(MoveType.EN_PASSANT, false);
 
             square.getMoveTypes().replace(MoveType.SHORT_CASTLE, false);
 
@@ -114,12 +115,12 @@ public class BoardManager {
         if ((currentFile == setFile) && (setRank < currentRank + 2 && setRank > currentRank - 2))
             return setConstraints(new Integer[]{posToIndex(setRank, setFile)}, MoveType.CAPTURE, MoveType.CLEAR);
 
-        if (currentRank == setRank && setFile == currentFile+2)
-            return new Integer[]{posToIndex(setRank, setFile-1), setConstraints(new Integer[]{posToIndex(setRank, setFile)},
+        if (currentRank == setRank && setFile == currentFile + 2)
+            return new Integer[]{posToIndex(setRank, setFile - 1), setConstraints(new Integer[]{posToIndex(setRank, setFile)},
                     MoveType.SHORT_CASTLE)[0]};
 
-        if (currentRank == setRank && setFile == currentFile-2)
-            return new Integer[]{posToIndex(setRank, setFile+1), setConstraints(new Integer[]{posToIndex(setRank, setFile)},
+        if (currentRank == setRank && setFile == currentFile - 2)
+            return new Integer[]{posToIndex(setRank, setFile + 1), setConstraints(new Integer[]{posToIndex(setRank, setFile)},
                     MoveType.LONG_CASTLE)[0]};
 
 

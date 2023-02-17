@@ -12,22 +12,16 @@ public class AppStart extends Application {
 
     @Override
     public void start(Stage stage) {
-
-
         window = stage;
-
-
         ChessViewController chessViewController = new ChessViewController(new ChessView(window));
-
-
         Scene scene = new Scene(chessViewController.getView());
         stage.getIcons().add(new Image(AppStart.class.getResource("application_assets/icons/app_icon.png").toExternalForm()));
         stage.setScene(scene);
         stage.setResizable(true);
-        stage.setTitle("Chess");
+        stage.setTitle("ChessFX");
         stage.show();
 
-        stage.setOnCloseRequest(e -> System.exit(0)); // program exit on close regardless of threads active
+        stage.setOnCloseRequest(e -> Platform.exit()); // program exit on close regardless of threads active
     }
 
 

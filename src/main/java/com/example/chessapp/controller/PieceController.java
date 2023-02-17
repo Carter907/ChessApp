@@ -51,19 +51,11 @@ public class PieceController {
 
     private void pieceAction(BoardManager manager, Board board) {
 
-        // programmatically calculate the rank and file based on the x and y cords of the piece location
-
-        int rank = manager.yToRank(piece.getBoard().getSquareSize(), pieceView.getY() - piece.getBoard().getSquareSize());
-        int file = manager.xToFile(piece.getBoard().getSquareSize(), pieceView.getX());
-
-        // get the squares that player wants to check for their moveTo
-
-        Integer[] squares = manager.positionIsLegal(new PieceModel(piece.getType(), piece.getRank(), piece.getFile()), rank, file);
-
         // checking for turn and other conditions are met to see if the position is legal. If not, the piece
         // is automatically reset and the method returns.
 
         System.out.println(board.getTurnCount());
+
 
         if (BoardConfig.IS_TURN_BASED) {
             if ((board.getTurnCount() % 2 == 1 && piece.getTeam() == PieceType.PIECE_TEAM_WHITE) ||
@@ -73,11 +65,19 @@ public class PieceController {
             }
         }
 
+        // programmatically calculate the rank and file based on the x and y cords of the piece location
+
+        int rank = manager.yToRank(piece.getBoard().getSquareSize(), pieceView.getY() - piece.getBoard().getSquareSize());
+        int file = manager.xToFile(piece.getBoard().getSquareSize(), pieceView.getX());
+
+        // get the squares that player wants to check for their moveTo
+
+        Integer[] squares = manager.positionIsLegal(new PieceModel(piece.getType(), piece.getRank(), piece.getFile()), rank, file);
+
         if (squares == null || Arrays.binarySearch(squares, -1) >= 0) {
             piece.resetPosition();
             return;
         }
-
         // check the legality of the moveTo based on pieces on the board and other conditions that game up the game of Chess
 
         Map<MoveType, Board.Square> values = board.checkSquares(piece, squares, rank, file);
@@ -159,6 +159,7 @@ public class PieceController {
             for (int file = 1; file <= 8; file++) {
 
                 Integer[] squareInts = manager.positionIsLegal(new PieceModel(piece.getType(), piece.getRank(), piece.getFile()), rank, file);
+                //manager.resetConstraints(squareInts);
                 if (squareInts == null || Arrays.binarySearch(squareInts, -1) >= 0)
                     continue;
                 squares.addAll(List.of(squareInts));
