@@ -65,7 +65,7 @@ public class PieceController {
 
         System.out.println(board.getTurnCount());
 
-        if (BoardConfig.isTurnBased) {
+        if (BoardConfig.IS_TURN_BASED) {
             if ((board.getTurnCount() % 2 == 1 && piece.getTeam() == PieceType.PIECE_TEAM_WHITE) ||
                     (board.getTurnCount() % 2 == 0 && piece.getTeam() == PieceType.PIECE_TEAM_BLACK)) {
                 piece.resetPosition();
@@ -149,7 +149,7 @@ public class PieceController {
         updateTurn(moveType, board);
 
         // go through each piece and check movable squares
-        if (BoardConfig.hasMobilityHighlighting)
+        if (BoardConfig.HAS_MOBILITY_HIGHLIGHTING)
             updateMovabilityHighlighting(board, manager);
     }
 
@@ -227,7 +227,7 @@ public class PieceController {
     private void refreshBoard(BoardManager manager, Board board, Integer[] squares) {
         manager.resetConstraints(squares);
         board.refreshAllSquares();
-        if (BoardConfig.hasMoveHighlighting)
+        if (BoardConfig.HAS_MOVE_HIGHLIGHTING)
         manager.applyToAllSquares(squares, s -> s.setHighlighted(true));
     }
 

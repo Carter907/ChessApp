@@ -2,8 +2,8 @@ package com.example.chessapp.board;
 
 public class BoardConfig {
 
-    public static final boolean isTurnBased = true;
-    public static final boolean hasMoveHighlighting = true;
-    public static final boolean hasMobilityHighlighting = false;
+    public static final boolean IS_TURN_BASED = false;
+    public static final boolean HAS_MOVE_HIGHLIGHTING = false;
+    public static final boolean HAS_MOBILITY_HIGHLIGHTING = true;
 
 }
