@@ -158,10 +158,14 @@ public class PieceController {
         for (int rank = 1; rank <= 8; rank++) {
             for (int file = 1; file <= 8; file++) {
 
+
+
+
                 Integer[] squareInts = manager.positionIsLegal(new PieceModel(piece.getType(), piece.getRank(), piece.getFile()), rank, file);
-                //manager.resetConstraints(squareInts);
                 if (squareInts == null || Arrays.binarySearch(squareInts, -1) >= 0)
                     continue;
+                manager.resetConstraints(squareInts);
+
                 squares.addAll(List.of(squareInts));
             }
         }
