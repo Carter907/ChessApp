@@ -15,7 +15,8 @@ public class AppStart extends Application {
         window = stage;
         ChessViewController chessViewController = new ChessViewController(new ChessView(window));
         Scene scene = new Scene(chessViewController.getView());
-        stage.getIcons().add(new Image(AppStart.class.getResource("application_assets/icons/app_icon.png").toExternalForm()));
+        scene.getStylesheets().add(getClass().getResource("css/Application.css").toExternalForm());
+        stage.getIcons().add(new Image(AppStart.class.getResource("icons/app_icon.png").toExternalForm()));
         stage.setScene(scene);
         stage.setResizable(true);
         stage.setTitle("ChessFX");

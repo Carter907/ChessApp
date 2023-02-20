@@ -56,7 +56,7 @@ public class ChessView extends View {
     }
     private void setBackground() {
         Image backgroundImg =
-                new Image(AppStart.class.getResource("application_assets/backgrounds/background.png")
+                new Image(AppStart.class.getResource("backgrounds/background.png")
                         .toExternalForm());
 
         background = new Rectangle(0,0, new ImagePattern(backgroundImg,
@@ -72,7 +72,7 @@ public class ChessView extends View {
         root.setMinHeight(SCREEN_HEIGHT);
 
         VBox outerBorder = new VBox();
-        outerBorder.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
+        outerBorder.setId("outerBorder");
 
         HBox top = new HBox();
         top.setSpacing(10);
@@ -106,6 +106,7 @@ public class ChessView extends View {
 
     private void setColorPicker() {
         picker = new ColorPicker();
+        picker.setId("picker");
 
     }
 

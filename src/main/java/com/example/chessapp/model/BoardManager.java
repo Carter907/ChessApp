@@ -95,6 +95,7 @@ public class BoardManager {
                 square.getMoveTypes().replace(MoveType.EN_PASSANT, false);
 
             square.getMoveTypes().replace(MoveType.SHORT_CASTLE, false);
+            square.getMoveTypes().replace(MoveType.LONG_CASTLE, false);
 
         }
         return indices;

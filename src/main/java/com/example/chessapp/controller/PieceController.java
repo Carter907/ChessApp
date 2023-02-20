@@ -1,5 +1,6 @@
 package com.example.chessapp.controller;
 
+import com.example.chessapp.ChessMoveException;
 import com.example.chessapp.board.Board;
 import com.example.chessapp.board.BoardConfig;
 import com.example.chessapp.model.*;
@@ -44,16 +45,20 @@ public class PieceController {
 
         final BoardManager manager = piece.getBoard().getBoardManager();
         final Board board = piece.getBoard();
-
-        pieceAction(manager, board);
-
+        try {
+            pieceAction(manager, board);
+        } catch (ChessMoveException e) {
+            new Alert(
+                    Alert.AlertType.ERROR,
+                    e.getMessage()
+            );
+        }
     }
 
-    private void pieceAction(BoardManager manager, Board board) {
+    private void pieceAction(BoardManager manager, Board board) throws ChessMoveException {
 
         // checking for turn and other conditions are met to see if the position is legal. If not, the piece
         // is automatically reset and the method returns.
-
         System.out.println(board.getTurnCount());
 
 
@@ -151,14 +156,13 @@ public class PieceController {
         // go through each piece and check movable squares
         if (BoardConfig.HAS_MOBILITY_HIGHLIGHTING)
             updateMovabilityHighlighting(board, manager);
+
     }
 
     private void updateMovabilityHighlighting(Board board, BoardManager manager) {
         ArrayList<Integer> squares = new ArrayList<>();
         for (int rank = 1; rank <= 8; rank++) {
             for (int file = 1; file <= 8; file++) {
-
-
 
 
                 Integer[] squareInts = manager.positionIsLegal(new PieceModel(piece.getType(), piece.getRank(), piece.getFile()), rank, file);
@@ -169,7 +173,6 @@ public class PieceController {
                 squares.addAll(List.of(squareInts));
             }
         }
-
 
 
         for (Integer index : squares) {
@@ -190,16 +193,19 @@ public class PieceController {
         alert.show();
     }
 
-    private boolean canCastleLong(Board board, Board.Square targetSquare) {
+    private boolean canCastleLong(Board board, Board.Square targetSquare) throws ChessMoveException{
 
         // TODO: add checks for castling long
-
-        Piece piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile() - 2).getPiece();
-        System.out.println("checked if this piece was a rook:" + piece);
-        if (piece.isPiece("rook")) {
-            return true;
+        try {
+            Piece piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile() - 2).getPiece();
+            System.out.println("checked if this piece was a rook:" + piece);
+            if (piece.isPiece("rook")) {
+                return true;
+            }
+            return false;
+        } catch (NullPointerException e) {
+            throw new ChessMoveException("wrong piece or piece is null", e);
         }
-        return false;
 
     }
 
@@ -233,7 +239,7 @@ public class PieceController {
         manager.resetConstraints(squares);
         board.refreshAllSquares();
         if (BoardConfig.HAS_MOVE_HIGHLIGHTING)
-        manager.applyToAllSquares(squares, s -> s.setHighlighted(true));
+            manager.applyToAllSquares(squares, s -> s.setHighlighted(true));
     }
 
     private void updateTurn(MoveType type, Board board) {

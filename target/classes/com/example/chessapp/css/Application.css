@@ -1,0 +1,6 @@
+#outerBorder {
+    -fx-background-color: linear-gradient(to left, gray, black);
+}
+.color-palette-region {
+    -fx-background-color: transparent;
+}
