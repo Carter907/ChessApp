@@ -68,7 +68,7 @@ public enum PieceType {
         return sprite;
     }
 
-    public boolean isOppositeTeam(PieceType type) {
+    public boolean oppositeTeamOf(PieceType type) {
         return !(type.team == this.team);
     }
 

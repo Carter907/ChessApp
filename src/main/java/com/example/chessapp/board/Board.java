@@ -38,7 +38,6 @@ public class Board extends TilePane {
     private BoardManager boardManager;
     private int turnCount;
 
-
     public Board() {
     }
 
@@ -325,7 +324,7 @@ public class Board extends TilePane {
 
             if (square.hasPiece()) {
                 Piece dormant = square.getPiece();
-                if (dormant.getType().isOppositeTeam(active.getType())) {
+                if (dormant.getType().oppositeTeamOf(active.getType())) {
                     // piece can capture another piece
                     if (targetRank == dormant.getRank() && targetFile == dormant.getFile() && square.moveTypes.get(MoveType.CAPTURE))
                         return Collections.singletonMap(MoveType.CAPTURE, square);

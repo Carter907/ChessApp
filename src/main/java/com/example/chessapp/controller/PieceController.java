@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static com.example.chessapp.model.PieceType.*;
+
 public class PieceController {
 
     private final PieceView pieceView;
@@ -69,6 +71,7 @@ public class PieceController {
                 return;
             }
         }
+
 
         // programmatically calculate the rank and file based on the x and y cords of the piece location
 
@@ -161,14 +164,28 @@ public class PieceController {
 
     private void updateMovabilityHighlighting(Board board, BoardManager manager) {
         ArrayList<Integer> squares = new ArrayList<>();
+        PieceModel pieceModel = new PieceModel(piece.getType(), piece.getRank(), piece.getFile());
+
         for (int rank = 1; rank <= 8; rank++) {
             for (int file = 1; file <= 8; file++) {
 
 
-                Integer[] squareInts = manager.positionIsLegal(new PieceModel(piece.getType(), piece.getRank(), piece.getFile()), rank, file);
+                Integer[] squareInts = manager.positionIsLegal(pieceModel, rank, file);
                 if (squareInts == null || Arrays.binarySearch(squareInts, -1) >= 0)
                     continue;
                 manager.resetConstraints(squareInts);
+                Piece piece = null;
+                for (int squareIndex : squareInts) {
+                    if (manager.inCheck(piece.getSquare().getIndex(), squareIndex)) {
+                        new Alert(
+                                Alert.AlertType.INFORMATION,
+                                "King is in Check!"
+                        ).show();
+                        break;
+
+                    }
+
+                }
 
                 squares.addAll(List.of(squareInts));
             }
@@ -193,7 +210,7 @@ public class PieceController {
         alert.show();
     }
 
-    private boolean canCastleLong(Board board, Board.Square targetSquare) throws ChessMoveException{
+    private boolean canCastleLong(Board board, Board.Square targetSquare) throws ChessMoveException {
 
         // TODO: add checks for castling long
         try {

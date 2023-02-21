@@ -52,6 +52,14 @@ public class BoardManager {
         return null;
     }
 
+    public boolean inCheck(int square1, int square2) {
+        Piece piece1, piece2;
+        piece1 = board.findSquare(square1).getPiece();
+        piece2 = board.findSquare(square2).getPiece();
+
+        return piece1 != null && piece2 != null && (piece1.getType().oppositeTeamOf(piece2.getType())) && piece2.isPiece("king");
+    }
+
     private Integer[] queenPositionLegal(int setRank, int setFile) {
 
         if (currentRank != setRank && currentFile != setFile)
