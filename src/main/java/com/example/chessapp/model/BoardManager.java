@@ -142,26 +142,26 @@ public class BoardManager {
         Integer[] squareArr = new Integer[0];
         if (currentFile == setFile ^ currentRank == setRank) {
             if (currentFile == setFile) {
-                if (setRank > currentRank) {
-                    for (int i = setRank; i > currentRank; i--) {
+                if (currentRank < setRank) {
+                    for (int i = currentRank+1; i <= setRank; i++) {
                         squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
                         squareArr[squareArr.length - 1] = posToIndex(i, setFile);
                     }
 
-                } else if (setRank < currentRank) {
-                    for (int i = setRank; i < currentRank; i++) {
+                } else {
+                    for (int i = currentRank-1; i >= setRank; i--) {
                         squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
                         squareArr[squareArr.length - 1] = posToIndex(i, setFile);
                     }
                 }
-            } else if (setFile > currentFile) {
+            } else if (currentFile < setFile) {
 
-                for (int i = setFile; i > currentFile; i--) {
+                for (int i = currentFile+1; i <= setFile; i++) {
                     squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
                     squareArr[squareArr.length - 1] = posToIndex(setRank, i);
                 }
-            } else if (setFile < currentFile) {
-                for (int i = setFile; i < currentFile; i++) {
+            } else {
+                for (int i = currentFile-1; i >= setFile; i--) {
                     squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
                     squareArr[squareArr.length - 1] = posToIndex(setRank, i);
                 }
