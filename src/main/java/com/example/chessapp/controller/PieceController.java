@@ -174,9 +174,9 @@ public class PieceController {
                 if (squareInts == null || Arrays.binarySearch(squareInts, -1) >= 0)
                     continue;
                 manager.resetConstraints(squareInts);
-                Piece piece = null;
+
                 for (int squareIndex : squareInts) {
-                    if (manager.inCheck(piece.getSquare().getIndex(), squareIndex)) {
+                    if (manager.inCheck(manager.posToIndex(pieceModel.getRank(), pieceModel.getFile()), squareIndex)) {
                         new Alert(
                                 Alert.AlertType.INFORMATION,
                                 "King is in Check!"

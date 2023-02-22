@@ -182,28 +182,28 @@ public class BoardManager {
             if ((currentFile - currentRank) == (setFile - setRank)) {
 
                 if (currentRank < setRank) {
-                    for (int i = setRank, y = 0; i > currentRank; i--, y++) {
+                    for (int i = currentRank+1, y = currentFile+1; i <= setRank; i++, y++) {
                         squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
-                        squareArr[squareArr.length - 1] = posToIndex(i, setFile - y);
+                        squareArr[squareArr.length - 1] = posToIndex(i, y);
                     }
                 } else {
-                    for (int i = setRank, y = 0; i < currentRank; i++, y++) {
+                    for (int i = currentRank-1, y = currentFile-1; i >= setRank; i--, y--) {
                         squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
-                        squareArr[squareArr.length - 1] = posToIndex(i, setFile + y);
+                        squareArr[squareArr.length - 1] = posToIndex(i, y);
                     }
                 }
                 return setConstraints(squareArr, MoveType.CAPTURE, MoveType.CLEAR);
             } else if ((currentRank + currentFile) == (setRank + setFile)) {
 
                 if (currentRank < setRank) {
-                    for (int i = setRank, y = 0; i > currentRank; i--, y++) {
+                    for (int i = currentRank+1, y = currentFile-1; i <= setRank; i++, y--) {
                         squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
-                        squareArr[squareArr.length - 1] = posToIndex(i, setFile + y);
+                        squareArr[squareArr.length - 1] = posToIndex(i, y);
                     }
                 } else {
-                    for (int i = setRank, y = 0; i < currentRank; i++, y++) {
+                    for (int i = currentRank-1, y = currentFile+1; i >= setRank; i--, y++) {
                         squareArr = Arrays.copyOf(squareArr, squareArr.length + 1);
-                        squareArr[squareArr.length - 1] = posToIndex(i, setFile - y);
+                        squareArr[squareArr.length - 1] = posToIndex(i, y);
                     }
                 }
                 return setConstraints(squareArr, MoveType.CAPTURE, MoveType.CLEAR);
