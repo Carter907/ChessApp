@@ -1,6 +1,13 @@
 #outerBorder {
-    -fx-background-color: linear-gradient(to left, gray, black);
+    -fx-background-color: linear-gradient(to left, whitesmoke, darkslategray);
 }
 .color-palette-region {
     -fx-background-color: transparent;
+}
+#board {
+    -fx-background-color: black;
+    -fx-border-width: 10px;
+    -fx-border-color: linear-gradient(to left, whitesmoke, darkslategray);
+    -fx-translate-x: -10px;
+    -fx-translate-y: -10px;
 }

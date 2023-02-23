@@ -1,9 +1,39 @@
 package com.example.chessapp.board;
 
-public class BoardConfig {
+public enum BoardConfig {
 
-    public static final boolean IS_TURN_BASED = true;
-    public static final boolean HAS_MOVE_HIGHLIGHTING = false;
-    public static final boolean HAS_MOBILITY_HIGHLIGHTING = true;
+    INSTANCE;
+    private volatile boolean turnBased;
+    private volatile boolean squaresCheckedHighlighting;
+    private volatile boolean mobilityHighlighting;
 
+    BoardConfig() {
+        turnBased = false;
+        squaresCheckedHighlighting = false;
+        mobilityHighlighting = false;
+    }
+
+    public synchronized boolean isTurnBased() {
+        return turnBased;
+    }
+
+    public synchronized void setTurnBased(boolean turnBased) {
+        this.turnBased = turnBased;
+    }
+
+    public synchronized boolean hasSquaresCheckedHighlighting() {
+        return squaresCheckedHighlighting;
+    }
+
+    public synchronized void setSquaresCheckedHighlighting(boolean squaresCheckedHighlighting) {
+        this.squaresCheckedHighlighting = squaresCheckedHighlighting;
+    }
+
+    public synchronized boolean hasMobilityHighlighting() {
+        return mobilityHighlighting;
+    }
+
+    public synchronized void setMobilityHighlighting(boolean mobilityHighlighting) {
+        this.mobilityHighlighting = mobilityHighlighting;
+    }
 }

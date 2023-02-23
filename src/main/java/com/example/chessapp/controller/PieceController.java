@@ -13,13 +13,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import static com.example.chessapp.model.PieceType.*;
+import java.util.stream.Stream;
 
 public class PieceController {
 
     private final PieceView pieceView;
     private final Piece piece;
+    private BoardManager manager;
+    private Board board;
 
     public PieceController(PieceView pieceView, Piece piece) {
 
@@ -45,10 +46,11 @@ public class PieceController {
 
     private void movePiece(MouseEvent event) {
 
-        final BoardManager manager = piece.getBoard().getBoardManager();
-        final Board board = piece.getBoard();
+        manager = piece.getBoard().getBoardManager();
+        board = piece.getBoard();
+
         try {
-            pieceAction(manager, board);
+            pieceAction();
         } catch (ChessMoveException e) {
             new Alert(
                     Alert.AlertType.ERROR,
@@ -57,14 +59,14 @@ public class PieceController {
         }
     }
 
-    private void pieceAction(BoardManager manager, Board board) throws ChessMoveException {
+    private void pieceAction() throws ChessMoveException {
 
         // checking for turn and other conditions are met to see if the position is legal. If not, the piece
         // is automatically reset and the method returns.
         System.out.println(board.getTurnCount());
 
 
-        if (BoardConfig.IS_TURN_BASED) {
+        if (BoardConfig.INSTANCE.isTurnBased()) {
             if ((board.getTurnCount() % 2 == 1 && piece.getTeam() == PieceType.PIECE_TEAM_WHITE) ||
                     (board.getTurnCount() % 2 == 0 && piece.getTeam() == PieceType.PIECE_TEAM_BLACK)) {
                 piece.resetPosition();
@@ -92,7 +94,7 @@ public class PieceController {
 
         // clean up. reset the constraints of the squares so that there aren't sideffects for subsquent moves
 
-        refreshBoard(manager, board, squares);
+        refreshBoard(squares);
 
 
         /* get the move type for the move. What kind of move was it
@@ -129,9 +131,9 @@ public class PieceController {
                 piece.moveTo(targetSquare);
             }
             case SHORT_CASTLE -> {
-                if (canCastleShort(board, targetSquare)) {
+                if (canCastleShort(targetSquare)) {
                     piece.moveTo(targetSquare);
-                    Piece rook = getCastleRook(board, targetSquare, MoveType.SHORT_CASTLE);
+                    Piece rook = getCastleRook(targetSquare, MoveType.SHORT_CASTLE);
 
                     rook.moveTo(board.findSquare(rank, file - 1));
 
@@ -140,9 +142,9 @@ public class PieceController {
 
             }
             case LONG_CASTLE -> {
-                if (canCastleLong(board, targetSquare)) {
+                if (canCastleLong(targetSquare)) {
                     piece.moveTo(targetSquare);
-                    Piece rook = getCastleRook(board, targetSquare, MoveType.LONG_CASTLE);
+                    Piece rook = getCastleRook(targetSquare, MoveType.LONG_CASTLE);
 
                     rook.moveTo(board.findSquare(rank, file + 1));
 
@@ -154,15 +156,15 @@ public class PieceController {
 
         // set turn changes based on which action occured
 
-        updateTurn(moveType, board);
+        updateTurn(moveType);
 
         // go through each piece and check movable squares
-        if (BoardConfig.HAS_MOBILITY_HIGHLIGHTING)
-            updateMovabilityHighlighting(board, manager);
+        if (BoardConfig.INSTANCE.hasMobilityHighlighting())
+            updateMobilityHighlighting();
 
     }
 
-    private void updateMovabilityHighlighting(Board board, BoardManager manager) {
+    private void updateMobilityHighlighting() {
         ArrayList<Integer> squares = new ArrayList<>();
         PieceModel pieceModel = new PieceModel(piece.getType(), piece.getRank(), piece.getFile());
 
@@ -170,12 +172,21 @@ public class PieceController {
             for (int file = 1; file <= 8; file++) {
 
 
-                Integer[] squareInts = manager.positionIsLegal(pieceModel, rank, file);
-                if (squareInts == null || Arrays.binarySearch(squareInts, -1) >= 0)
+                Integer[] possibleMoves = manager.positionIsLegal(pieceModel, rank, file);
+                if (possibleMoves == null || Arrays.binarySearch(possibleMoves, -1) >= 0)
                     continue;
-                manager.resetConstraints(squareInts);
+                manager.resetConstraints(possibleMoves);
+                Integer[] finalPossibleMoves = possibleMoves;
+                possibleMoves = Stream.of(possibleMoves)
+                        .filter(n -> board.checkSquares(
+                                piece,
+                                finalPossibleMoves,
+                                board.findSquare(n).getRank(),
+                                board.findSquare(n).getFile()
+                        ).entrySet().iterator().next().getKey() != MoveType.BLOCKED)
+                        .toArray(Integer[]::new);
 
-                for (int squareIndex : squareInts) {
+                for (int squareIndex : possibleMoves) {
                     if (manager.inCheck(manager.posToIndex(pieceModel.getRank(), pieceModel.getFile()), squareIndex)) {
                         new Alert(
                                 Alert.AlertType.INFORMATION,
@@ -187,7 +198,7 @@ public class PieceController {
 
                 }
 
-                squares.addAll(List.of(squareInts));
+                squares.addAll(List.of(possibleMoves));
             }
         }
 
@@ -210,7 +221,7 @@ public class PieceController {
         alert.show();
     }
 
-    private boolean canCastleLong(Board board, Board.Square targetSquare) throws ChessMoveException {
+    private boolean canCastleLong(Board.Square targetSquare) throws ChessMoveException {
 
         // TODO: add checks for castling long
         try {
@@ -226,7 +237,7 @@ public class PieceController {
 
     }
 
-    private boolean canCastleShort(Board board, Board.Square target) {
+    private boolean canCastleShort(Board.Square target) {
 
         //TODO: add checks for castling short
 
@@ -238,7 +249,7 @@ public class PieceController {
         return false;
     }
 
-    private Piece getCastleRook(Board board, Board.Square targetSquare, MoveType type) {
+    private Piece getCastleRook(Board.Square targetSquare, MoveType type) {
 
         Piece piece = null;
         if (type == MoveType.SHORT_CASTLE)
@@ -252,14 +263,14 @@ public class PieceController {
 
     }
 
-    private void refreshBoard(BoardManager manager, Board board, Integer[] squares) {
+    private void refreshBoard(Integer[] squares) {
         manager.resetConstraints(squares);
         board.refreshAllSquares();
-        if (BoardConfig.HAS_MOVE_HIGHLIGHTING)
+        if (BoardConfig.INSTANCE.hasSquaresCheckedHighlighting())
             manager.applyToAllSquares(squares, s -> s.setHighlighted(true));
     }
 
-    private void updateTurn(MoveType type, Board board) {
+    private void updateTurn(MoveType type) {
 
         if (type == MoveType.BLOCKED)
             return;

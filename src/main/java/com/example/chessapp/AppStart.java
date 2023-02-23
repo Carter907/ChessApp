@@ -20,6 +20,7 @@ public class AppStart extends Application {
         stage.setScene(scene);
         stage.setResizable(true);
         stage.setTitle("ChessFX");
+        stage.setResizable(false);
         stage.show();
 
         stage.setOnCloseRequest(e -> Platform.exit()); // program exit on close regardless of threads active
