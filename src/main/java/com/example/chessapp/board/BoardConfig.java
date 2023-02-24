@@ -8,9 +8,9 @@ public enum BoardConfig {
     private volatile boolean mobilityHighlighting;
 
     BoardConfig() {
-        turnBased = false;
+        turnBased = true;
         squaresCheckedHighlighting = false;
-        mobilityHighlighting = false;
+        mobilityHighlighting = true;
     }
 
     public synchronized boolean isTurnBased() {
