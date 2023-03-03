@@ -12,15 +12,14 @@ public class PieceView extends ImageView {
 
         setImage(type.getImage());
         setViewport(new Rectangle2D(0, 0, this.getImage().getWidth(), this.getImage().getHeight()));
-        setPreserveRatio(true);
-        setFitHeight(board.getSquareSize() - 10);
+        final double imgAspectRatio = this.getImage().getWidth() / this.getImage().getHeight();
 
-        final double ASPECT_RATIO = this.getImage().getWidth() / this.getImage().getHeight();
-        setTranslateX((-getFitHeight() * ASPECT_RATIO / 2));
-        setTranslateY((-getFitHeight() / ASPECT_RATIO / 2));
+        setFitHeight(board.getSquareSize() - 8);
+        setFitWidth(getFitHeight() * imgAspectRatio);
 
-        if (type == PieceType.PAWN_B || type == PieceType.PAWN_W)
-            this.setTranslateY(this.getTranslateY() + 5);
+        setTranslateX((-getFitWidth() / 2));
+        setTranslateY((-getFitHeight() / 2));
+
     }
 
 

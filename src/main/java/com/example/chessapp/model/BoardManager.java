@@ -115,6 +115,7 @@ public class BoardManager {
 
     }
 
+
     private Integer[] kingPositionLegal(int setRank, int setFile) {
 
 

@@ -9,10 +9,7 @@ import com.example.chessapp.view.PieceView;
 import javafx.scene.control.Alert;
 import javafx.scene.input.MouseEvent;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class PieceController {
@@ -109,8 +106,10 @@ public class PieceController {
 
         System.out.println(values);
 
+        // check if the move reveals the check of the friendly king.
 
-        // determine what action to take based on what happend
+
+        // determine what action to take based on what happens
 
         switch (moveType) {
             case CLEAR -> piece.moveTo(targetSquare);
@@ -164,46 +163,97 @@ public class PieceController {
 
     }
 
-    private void updateMobilityHighlighting() {
+    private ArrayList<Integer> getAllPossibleMoves() {
         ArrayList<Integer> squares = new ArrayList<>();
         PieceModel pieceModel = new PieceModel(piece.getType(), piece.getRank(), piece.getFile());
+        int rank = pieceModel.getRank(), file = pieceModel.getFile();
+        Integer[] offsets = pieceModel.getType().getMoveOffsets();
 
-        for (int rank = 1; rank <= 8; rank++) {
-            for (int file = 1; file <= 8; file++) {
-
-
-                Integer[] possibleMoves = manager.positionIsLegal(pieceModel, rank, file);
-                if (possibleMoves == null || Arrays.binarySearch(possibleMoves, -1) >= 0)
+            for (int i = 0; i < offsets.length - 1; i +=2) {
+                try {
+                if (!isOffsetLegal(offsets[i], offsets[i+1], rank, file))
                     continue;
-                manager.resetConstraints(possibleMoves);
-                Integer[] finalPossibleMoves = possibleMoves;
-                possibleMoves = Stream.of(possibleMoves)
-                        .filter(n -> board.checkSquares(
-                                piece,
-                                finalPossibleMoves,
-                                board.findSquare(n).getRank(),
-                                board.findSquare(n).getFile()
-                        ).entrySet().iterator().next().getKey() != MoveType.BLOCKED)
-                        .toArray(Integer[]::new);
 
-                for (int squareIndex : possibleMoves) {
-                    if (manager.inCheck(manager.posToIndex(pieceModel.getRank(), pieceModel.getFile()), squareIndex)) {
-                        new Alert(
-                                Alert.AlertType.INFORMATION,
-                                "King is in Check!"
-                        ).show();
-                        break;
+                if (piece.getType().isStepPiece())
+                    squares.addAll(List.of(
+                            getPossibleSquares(pieceModel, rank += offsets[i], file += offsets[i + 1])
+                    ));
+                else
+                    while (rank <= 8 && rank > 0 && file <= 8 && file > 0) {
+                        if (!isOffsetLegal(offsets[i], offsets[i+1], rank, file))
+                            break;
+                        squares.addAll(List.of(
+                                getPossibleSquares(pieceModel, rank += offsets[i], file += offsets[i + 1])
+                        ));
 
                     }
-
+                rank = pieceModel.getRank();
+                file = pieceModel.getFile();
+                } catch (NullPointerException e) {
+                    System.err.println(e.getMessage());
+                    System.err.println("rank = " + rank);
+                    System.err.println("file = " + file);
+                    System.err.println("offsetRank = " + offsets[i]);
+                    System.err.println("offsetFile = " + offsets[i+1]);
+                    System.err.println();
                 }
-
-                squares.addAll(List.of(possibleMoves));
             }
+
+
+
+        return squares;
+    }
+    private boolean isOffsetLegal(int offsetRank, int offsetFile, int rank, int file) {
+        if (offsetRank + rank > 8 || offsetRank + rank <= 0)
+            return false;
+        else if (offsetFile + file > 8 || offsetFile + file <= 0)
+            return false;
+        return true;
+    }
+
+    private Integer[] getPossibleSquares(PieceModel pieceModel, int rank, int file) {
+        Integer[] possibleMoves = manager.positionIsLegal(pieceModel, rank, file);
+        if (possibleMoves == null || Arrays.binarySearch(possibleMoves, -1) >= 0)
+            return new Integer[0];
+        manager.resetConstraints(possibleMoves);
+        Integer[] finalPossibleMoves = possibleMoves;
+        possibleMoves = Stream.of(possibleMoves)
+                .filter(n -> board.checkSquares(
+                        piece,
+                        finalPossibleMoves,
+                        board.findSquare(n).getRank(),
+                        board.findSquare(n).getFile()
+                ).entrySet().iterator().next().getKey() != MoveType.BLOCKED)
+                .toArray(Integer[]::new);
+
+        pieceChecksKing(possibleMoves);
+
+        return possibleMoves;
+    }
+
+    private void pieceChecksKing(Integer[] possibleMoves) {
+        for (int squareIndex : possibleMoves) {
+            if (manager.inCheck(manager.posToIndex(piece.getRank(), piece.getFile()), squareIndex)) {
+                new Alert(
+                        Alert.AlertType.INFORMATION,
+                        "King is in Check!"
+                ).show();
+                break;
+
+            }
+
         }
+    }
+
+    private void pieceRevealsCheck() {
+
+    }
+
+    private void updateMobilityHighlighting() {
+        ArrayList<Integer> allPossibleMoves = getAllPossibleMoves();
 
 
-        for (Integer index : squares) {
+        for (Integer index : allPossibleMoves) {
             Board.Square square = board.findSquare(index);
 
             square.setHighlighted(true);

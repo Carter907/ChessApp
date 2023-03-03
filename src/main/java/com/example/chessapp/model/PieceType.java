@@ -4,8 +4,6 @@ import com.example.chessapp.AppStart;
 import javafx.scene.image.Image;
 
 public enum PieceType {
-
-
     PAWN_W(new Image(AppStart.class.getResource("sets/set1/white_pawn.png").toExternalForm())),
     NIGHT_W(new Image(AppStart.class.getResource("sets/set1/white_knight.png").toExternalForm())),
     BISHOP_W(new Image(AppStart.class.getResource("sets/set1/white_bishop.png").toExternalForm())),
@@ -21,14 +19,43 @@ public enum PieceType {
 
     private final Image sprite;
 
+    private final Integer[] moveOffsets;
+
     public static final int PIECE_TEAM_WHITE = 0, PIECE_TEAM_BLACK = 1;
 
     private int team;
-    private static PieceType[] pieceTypes = PieceType.values();
+    private final static PieceType[] pieceTypes;
+
+    static {
+        pieceTypes = PieceType.values();
+    }
 
     PieceType(Image sprite) {
         this.sprite = sprite;
         this.team = ("" + name().charAt(name().length() - 1)).equals("B") ? PIECE_TEAM_BLACK : PIECE_TEAM_WHITE;
+        this.moveOffsets = PieceOffset.of(this);
+    }
+
+    private Integer[] setMoveOffsets() {
+        return this.moveOffsets;
+    }
+
+    public boolean isStepPiece() {
+        return switch (this.getSimplePieceName()) {
+            case "pawn", "king", "knight" -> true;
+            default -> false;
+        };
+    }
+
+    public boolean isSlidingPiece() {
+        return switch (this.getSimplePieceName()) {
+            case "bishop", "rook", "queen" -> true;
+            default -> false;
+        };
+    }
+
+    public Integer[] getMoveOffsets() {
+        return moveOffsets;
     }
 
     public static PieceType charToPieceType(char c) {
@@ -47,10 +74,17 @@ public enum PieceType {
         return null;
     }
 
+    public String getSimplePieceName() {
+        String simplified = this.name().substring(0, this.name().indexOf("_")).toLowerCase();
+        if (simplified.equals("night"))
+            return "knight";
+        return simplified;
+    }
+
     public static boolean isPiece(String pieceName, PieceType type) {
 
         pieceName = pieceName.toLowerCase();
-        String typeName = type.name().substring(0, type.name().indexOf("_")).toLowerCase();
+        String typeName = type.getSimplePieceName();
         switch (pieceName) {
             case "rook", "pawn", "king", "bishop", "queen", "knight" -> {
                 return pieceName.equals(typeName);
