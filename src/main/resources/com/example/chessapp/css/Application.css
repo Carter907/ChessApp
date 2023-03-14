@@ -1,13 +1,18 @@
 #outerBorder {
-    -fx-background-color: linear-gradient(to left, whitesmoke, darkslategray);
+    -fx-background-color: linear-gradient(to left, whitesmoke, #565656);
 }
 .color-palette-region {
     -fx-background-color: transparent;
 }
 #board {
-    -fx-background-color: black;
+    -fx-background-color: transparent;
     -fx-border-width: 10px;
-    -fx-border-color: linear-gradient(to left, whitesmoke, darkslategray);
+    -fx-border-radius: 5px;
+    -fx-border-color: radial-gradient(center 50% 50%, radius 99%, rgba(112, 73, 0, 0.44), rgba(255, 255, 255, 0.36));
     -fx-translate-x: -11px;
     -fx-translate-y: -13px;
+}
+.background {
+
+    -fx-fill: radial-gradient(center 50% 50%, radius 75%, white, black);
 }

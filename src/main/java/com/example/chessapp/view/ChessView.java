@@ -64,11 +64,14 @@ public class ChessView extends View {
                 new Image(AppStart.class.getResource("backgrounds/background.png")
                         .toExternalForm());
 
-        background = new Rectangle(0,0, new ImagePattern(backgroundImg,
-                0,0, getSCREEN_WIDTH(), getSCREEN_HEIGHT(), false));
+//        background = new Rectangle(0,0, new ImagePattern(backgroundImg,
+//                0,0, getSCREEN_WIDTH(), getSCREEN_HEIGHT(), false));
+
+        background = new Rectangle(0,0);
 
         background.widthProperty().bind(stage.widthProperty());
         background.heightProperty().bind(stage.heightProperty());
+        background.getStyleClass().add("background");
     }
     private void setLayout() {
 
