@@ -24,8 +24,8 @@ public class ChessView extends View {
     private MenuItem squaresCheckedHighlighting;
     private MenuItem turnBased;
 
-    final double SCREEN_WIDTH = 700;
-    final double SCREEN_HEIGHT = 500;
+    final double SCREEN_WIDTH = 1280;
+    final double SCREEN_HEIGHT = 720;
     public ChessView(Stage stage) {
 
         super(stage);

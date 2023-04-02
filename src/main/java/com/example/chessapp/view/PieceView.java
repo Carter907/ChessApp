@@ -14,7 +14,7 @@ public class PieceView extends ImageView {
         setViewport(new Rectangle2D(0, 0, this.getImage().getWidth(), this.getImage().getHeight()));
         final double imgAspectRatio = this.getImage().getWidth() / this.getImage().getHeight();
 
-        setFitHeight(board.getSquareSize() - 8);
+        setFitHeight(board.getSquareSize() - board.getSquareSize()/5);
         setFitWidth(getFitHeight() * imgAspectRatio);
 
         setTranslateX((-getFitWidth() / 2));
