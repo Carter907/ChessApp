@@ -138,4 +138,5 @@ public class Piece {
         return String.format("<piece:%s square=%s rank=%d file=%d board=%s/>",type, square, rank, file, board);
     }
 
+
 }

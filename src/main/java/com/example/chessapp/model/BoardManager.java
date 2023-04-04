@@ -7,13 +7,23 @@ import javafx.scene.paint.Color;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-public class BoardManager {
+public class BoardManager implements Cloneable {
     private Board board;
+    private Board boardPeer;
     private int team, currentRank, currentFile;
     private PieceType type;
 
     public BoardManager(Board board) {
         this.board = board;
+    }
+
+    public void beginPeer() {
+        boardPeer = board;
+        board = board.clone();
+    }
+
+    public void endPeer() {
+        board = boardPeer;
     }
 
     public Integer[] positionIsLegal(PieceModel pieceModel, int setRank, int setFile) {
@@ -113,6 +123,14 @@ public class BoardManager {
         }
         return indices;
     }
+
+    public void restoreConstraints(Integer[] indices) {
+        applyToAllSquares(indices, s -> {
+            s.restore(boardPeer.findSquare(s.getIndex()));
+
+        });
+    }
+
     public void applyToAllSquares(Integer[] indices, Consumer<Board.Square> consumer) {
 
         Arrays.stream(indices).map(board::findSquare).forEach(consumer);
@@ -275,6 +293,8 @@ public class BoardManager {
 
     }
 
+
+
     private Integer[] knightPositionLegal(int setRank, int setFile) {
 
         if ((setFile == currentFile - 1 || setFile == currentFile + 1) && (setRank == currentRank + 2 || setRank == currentRank - 2))
@@ -299,5 +319,10 @@ public class BoardManager {
 
     public double rankToY(double squareHeight, int rank) {
         return (8 - rank) * squareHeight;
+    }
+
+
+    public Board getBoard() {
+        return this.board;
     }
 }
