@@ -26,7 +26,7 @@ public class Board extends TilePane {
 
     public final int SIZE = 8;
     private int squareCount;
-    public final Color defaultDark = Color.web("#8e5e3e").darker().brighter();
+    public final Color defaultDark = Color.web("#7f9a70").darker().brighter();
     public final Color defaultLight = Color.web("#eec5aa").brighter();
     private double squareSize;
     private Color darkSquareColor;
@@ -326,12 +326,20 @@ public class Board extends TilePane {
                 Piece dormant = square.getPiece();
                 if (dormant.getType().oppositeTeamOf(active.getType())) {
                     // piece can capture another piece
-                    if (targetRank == dormant.getRank() && targetFile == dormant.getFile() && square.moveTypes.get(MoveType.CAPTURE))
+                    if (square.equals(findSquare(targetRank, targetFile)) && (square.moveTypes.get(MoveType.CAPTURE) || square.moveTypes.get(MoveType.HIGHLIGHT)))
                         return Collections.singletonMap(MoveType.CAPTURE, square);
-                    else
-                        // piece is blocked by another piece
+                    else {
 
+//                        System.out.println("target rank: " + targetRank);
+//                        System.out.println("target file: " + targetFile);
+//                        System.out.println("dormant file: " + dormant.getRank());
+//                        System.out.println("dormant rank: " + dormant.getFile());
+//                        System.out.println("dormant: " + dormant);
+//                        System.out.println(square.moveTypes);
+
+                        // piece is blocked by another piece
                         return Collections.singletonMap(MoveType.BLOCKED, square);
+                    }
                 } else
                     // piece is the same team
                     return Collections.singletonMap(MoveType.BLOCKED, square);
@@ -354,9 +362,14 @@ public class Board extends TilePane {
                 // is unchecked square a long castle square?
             else if (square.moveTypes.get(MoveType.LONG_CASTLE))
                 return Collections.singletonMap(MoveType.LONG_CASTLE, square);
-
+            else if (square.moveTypes.get(MoveType.HIGHLIGHT) && active.isPiece("pawn")) {
+                square.moveTypes.replace(MoveType.HIGHLIGHT, false);
+                return Collections.singletonMap(MoveType.BLOCKED, square);
+            }
         }
-
+                        System.out.println("target rank: " + targetRank);
+                        System.out.println("target file: " + targetFile);
+                        System.out.println(square.moveTypes);
 
         return Collections.singletonMap(MoveType.CLEAR, square);
     }

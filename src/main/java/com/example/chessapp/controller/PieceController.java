@@ -62,6 +62,11 @@ public class PieceController {
         // is automatically reset and the method returns.
         System.out.println(board.getTurnCount());
 
+        // view piece moves:
+
+        if (BoardConfig.INSTANCE.hasMobilityHighlighting())
+            updateMobilityHighlighting();
+
 
         if (BoardConfig.INSTANCE.isTurnBased()) {
             if ((board.getTurnCount() % 2 == 1 && piece.getTeam() == PieceType.PIECE_TEAM_WHITE) ||
@@ -104,7 +109,8 @@ public class PieceController {
 
         Board.Square targetSquare = board.findSquare(rank, file);
 
-        System.out.println(values);
+//        System.out.println(values);
+        System.out.println(moveType);
 
         // check if the move reveals the check of the friendly king.
 
@@ -156,10 +162,9 @@ public class PieceController {
         // set turn changes based on which action occured
 
         updateTurn(moveType);
-
         // go through each piece and check movable squares
-        if (BoardConfig.INSTANCE.hasMobilityHighlighting())
-            updateMobilityHighlighting();
+
+
 
     }
 
@@ -169,9 +174,9 @@ public class PieceController {
         int rank = pieceModel.getRank(), file = pieceModel.getFile();
         Integer[] offsets = pieceModel.getType().getMoveOffsets();
 
-            for (int i = 0; i < offsets.length - 1; i +=2) {
-                try {
-                if (!isOffsetLegal(offsets[i], offsets[i+1], rank, file))
+        for (int i = 0; i < offsets.length - 1; i += 2) {
+            try {
+                if (!isOffsetLegal(offsets[i], offsets[i + 1], rank, file))
                     continue;
 
                 if (piece.getType().isStepPiece())
@@ -180,7 +185,7 @@ public class PieceController {
                     ));
                 else
                     while (rank <= 8 && rank > 0 && file <= 8 && file > 0) {
-                        if (!isOffsetLegal(offsets[i], offsets[i+1], rank, file))
+                        if (!isOffsetLegal(offsets[i], offsets[i + 1], rank, file))
                             break;
                         squares.addAll(List.of(
                                 getPossibleSquares(pieceModel, rank += offsets[i], file += offsets[i + 1])
@@ -189,20 +194,20 @@ public class PieceController {
                     }
                 rank = pieceModel.getRank();
                 file = pieceModel.getFile();
-                } catch (NullPointerException e) {
-                    System.err.println(e.getMessage());
-                    System.err.println("rank = " + rank);
-                    System.err.println("file = " + file);
-                    System.err.println("offsetRank = " + offsets[i]);
-                    System.err.println("offsetFile = " + offsets[i+1]);
-                    System.err.println();
-                }
+            } catch (NullPointerException e) {
+                System.err.println(e.getMessage());
+                System.err.println("rank = " + rank);
+                System.err.println("file = " + file);
+                System.err.println("offsetRank = " + offsets[i]);
+                System.err.println("offsetFile = " + offsets[i + 1]);
+                System.err.println();
             }
-
+        }
 
 
         return squares;
     }
+
     private boolean isOffsetLegal(int offsetRank, int offsetFile, int rank, int file) {
         if (offsetRank + rank > 8 || offsetRank + rank <= 0)
             return false;
@@ -215,8 +220,16 @@ public class PieceController {
         Integer[] possibleMoves = manager.positionIsLegal(pieceModel, rank, file);
         if (possibleMoves == null || Arrays.binarySearch(possibleMoves, -1) >= 0)
             return new Integer[0];
-        manager.resetConstraints(possibleMoves);
+        Arrays.stream(possibleMoves)
+                .map(s -> board.findSquare(s))
+                .forEach(bs -> {
+                    if (bs.getMoveTypes().get(MoveType.CAPTURE))
+                        bs.getMoveTypes().replace(MoveType.HIGHLIGHT, true);
+                    manager.resetSquareConstraints(bs);
+
+                });
         Integer[] finalPossibleMoves = possibleMoves;
+
         possibleMoves = Stream.of(possibleMoves)
                 .filter(n -> board.checkSquares(
                         piece,
@@ -250,15 +263,26 @@ public class PieceController {
     }
 
     private void updateMobilityHighlighting() {
+
+        board.applyToAllSquares(s -> {
+            if (s.isHighlighted()) {
+                s.setHighlighted(false);
+            }
+        });
+
         ArrayList<Integer> allPossibleMoves = getAllPossibleMoves();
 
 
         for (Integer index : allPossibleMoves) {
             Board.Square square = board.findSquare(index);
-
             square.setHighlighted(true);
+            applyAfterMobilityHighlightingSet(square);
         }
 
+    }
+
+    private void applyAfterMobilityHighlightingSet(Board.Square square) {
+        square.getMoveTypes().replace(MoveType.HIGHLIGHT, false);
     }
 
     private void captureKing(Piece enemy) {

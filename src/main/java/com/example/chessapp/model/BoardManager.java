@@ -23,10 +23,10 @@ public class BoardManager {
         currentFile = pieceModel.getFile();
         type = pieceModel.getType();
 
-        System.out.println("current rank: " + currentRank);
-        System.out.println("current file: " + currentFile);
-        System.out.println("current type: " + type);
-        System.out.println("current team: " + team);
+//        System.out.println("current rank: " + currentRank);
+//        System.out.println("current file: " + currentFile);
+//        System.out.println("current type: " + type);
+//        System.out.println("current team: " + team);
 
 
         switch (pieceModel.getType()) {
@@ -93,22 +93,26 @@ public class BoardManager {
         return indices;
     }
 
+    public void resetSquareConstraints(Board.Square square) {
+
+        square.getMoveTypes().replace(MoveType.CAPTURE, false);
+        square.getMoveTypes().replace(MoveType.CLEAR, false);
+        if (square.getPositionTurn() + 1 == board.getTurnCount())
+            square.getMoveTypes().replace(MoveType.EN_PASSANT, false);
+
+        square.getMoveTypes().replace(MoveType.SHORT_CASTLE, false);
+        square.getMoveTypes().replace(MoveType.LONG_CASTLE, false);
+
+    }
 
     public Integer[] resetConstraints(Integer[] indices) {
         for (Integer n : indices) {
             Board.Square square = board.findSquare(n);
-            square.getMoveTypes().replace(MoveType.CAPTURE, false);
-            square.getMoveTypes().replace(MoveType.CLEAR, false);
-            if (square.getPositionTurn() + 1 == board.getTurnCount())
-                square.getMoveTypes().replace(MoveType.EN_PASSANT, false);
-
-            square.getMoveTypes().replace(MoveType.SHORT_CASTLE, false);
-            square.getMoveTypes().replace(MoveType.LONG_CASTLE, false);
+            resetSquareConstraints(square);
 
         }
         return indices;
     }
-
     public void applyToAllSquares(Integer[] indices, Consumer<Board.Square> consumer) {
 
         Arrays.stream(indices).map(board::findSquare).forEach(consumer);

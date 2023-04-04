@@ -19,7 +19,7 @@ public class AppStart extends Application {
         stage.getIcons().add(new Image(AppStart.class.getResource("icons/app_icon.png").toExternalForm()));
         stage.setScene(scene);
         stage.setTitle("ChessFX");
-        stage.setResizable(true);
+        stage.setResizable(false);
         stage.show();
 
         stage.setOnCloseRequest(e -> Platform.exit()); // program exit on close regardless of threads active

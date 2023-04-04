@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"com.example.chessapp","l":"AppStart"},{"p":"com.example.chessapp","l":"ChessMoveException"},{"p":"com.example.chessapp","l":"Launcher"}];updateSearchResults();

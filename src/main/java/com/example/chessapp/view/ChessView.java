@@ -24,7 +24,9 @@ public class ChessView extends View {
     private MenuItem squaresCheckedHighlighting;
     private MenuItem turnBased;
 
-    final double SCREEN_WIDTH = 1280;
+    private Menu optionsMenu;
+
+    final double SCREEN_WIDTH = 720;
     final double SCREEN_HEIGHT = 720;
     public ChessView(Stage stage) {
 
@@ -87,12 +89,13 @@ public class ChessView extends View {
         top.setPadding(new Insets(10));
 
 
-        outerBorder.layoutXProperty().bind(stage.widthProperty().divide(2).subtract(board.getSquareSize()*4));
+        outerBorder.layoutXProperty().bind(stage.widthProperty().divide(2).subtract(board.getSquareSize()*4+8));
 
         MenuBar bar = new MenuBar();
-        Menu options = new Menu("Options");
-        options.getItems().addAll(mobilityHighlighting, turnBased, squaresCheckedHighlighting);
-        bar.getMenus().add(options);
+        optionsMenu = new Menu("Options");
+        optionsMenu.getItems().addAll(mobilityHighlighting, turnBased, squaresCheckedHighlighting);
+
+        bar.getMenus().add(optionsMenu);
         top.getChildren().addAll(debug, picker, bar);
 
         outerBorder.getChildren().addAll(top, boardBacker);
@@ -110,21 +113,21 @@ public class ChessView extends View {
         debug = new CheckBox("debug mode");
         debug.setTextFill(Color.WHITE);
 
+
     }
 
     private void setTurnBased() {
         turnBased = new MenuItem("turn based");
 
-
     }
 
     private void setMobilityHighlighting () {
         mobilityHighlighting = new MenuItem("show possible moves");
-
     }
 
     private void setSquaresCheckedHighlighting() {
         squaresCheckedHighlighting = new MenuItem("show squares checked");
+
     }
 
     private void setColorPicker() {
@@ -172,4 +175,9 @@ public class ChessView extends View {
     public double getSCREEN_HEIGHT() {
         return SCREEN_HEIGHT;
     }
+
+    public Menu getOptionsMenu() {
+        return optionsMenu;
+    }
+
 }

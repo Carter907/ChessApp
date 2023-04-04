@@ -4,20 +4,20 @@ import com.example.chessapp.AppStart;
 import javafx.scene.image.Image;
 
 public enum PieceType {
-    PAWN_W(new Image(AppStart.class.getResource("sets/set1/white_pawn.png").toExternalForm())),
-    NIGHT_W(new Image(AppStart.class.getResource("sets/set1/white_knight.png").toExternalForm())),
-    BISHOP_W(new Image(AppStart.class.getResource("sets/set1/white_bishop.png").toExternalForm())),
-    ROOK_W(new Image(AppStart.class.getResource("sets/set1/white_rook.png").toExternalForm())),
-    QUEEN_W(new Image(AppStart.class.getResource("sets/set1/white_queen.png").toExternalForm())),
-    KING_W(new Image(AppStart.class.getResource("sets/set1/white_king.png").toExternalForm())),
-    PAWN_B(new Image(AppStart.class.getResource("sets/set1/black_pawn.png").toExternalForm())),
-    NIGHT_B(new Image(AppStart.class.getResource("sets/set1/black_knight.png").toExternalForm())),
-    BISHOP_B(new Image(AppStart.class.getResource("sets/set1/black_bishop.png").toExternalForm())),
-    ROOK_B(new Image(AppStart.class.getResource("sets/set1/black_rook.png").toExternalForm())),
-    QUEEN_B(new Image(AppStart.class.getResource("sets/set1/black_queen.png").toExternalForm())),
-    KING_B(new Image(AppStart.class.getResource("sets/set1/black_king.png").toExternalForm()));
+    PAWN_W("sets/set1/white_pawn.png"),
+    NIGHT_W("sets/set1/white_knight.png"),
+    BISHOP_W("sets/set1/white_bishop.png"),
+    ROOK_W("sets/set1/white_rook.png"),
+    QUEEN_W("sets/set1/white_queen.png"),
+    KING_W("sets/set1/white_king.png"),
+    PAWN_B("sets/set1/black_pawn.png"),
+    NIGHT_B("sets/set1/black_knight.png"),
+    BISHOP_B("sets/set1/black_bishop.png"),
+    ROOK_B("sets/set1/black_rook.png"),
+    QUEEN_B("sets/set1/black_queen.png"),
+    KING_B("sets/set1/black_king.png");
 
-    private final Image sprite;
+    private final String imagePath;
 
     private final Integer[] moveOffsets;
 
@@ -30,8 +30,8 @@ public enum PieceType {
         pieceTypes = PieceType.values();
     }
 
-    PieceType(Image sprite) {
-        this.sprite = sprite;
+    PieceType(String imagePath) {
+        this.imagePath = imagePath;
         this.team = ("" + name().charAt(name().length() - 1)).equals("B") ? PIECE_TEAM_BLACK : PIECE_TEAM_WHITE;
         this.moveOffsets = PieceOffset.of(this);
     }
@@ -99,15 +99,11 @@ public enum PieceType {
     }
 
     public Image getImage() {
-        return sprite;
+        return new Image(AppStart.class.getResource(imagePath).toExternalForm());
     }
 
     public boolean oppositeTeamOf(PieceType type) {
         return !(type.team == this.team);
-    }
-
-    public Image getSprite() {
-        return sprite;
     }
 
     public static PieceType[] getPieceTypes() {
