@@ -61,10 +61,15 @@ public class PieceController {
         // checking for turn and other conditions are met to see if the position is legal. If not, the piece
         // is automatically reset and the method returns.
         System.out.println(board.getTurnCount());
-
+        board.applyToAllSquares(s -> {
+            if (s.isHighlighted()) {
+                s.setHighlighted(false);
+            }
+        });
         // view piece moves:
         if (BoardConfig.INSTANCE.hasMobilityHighlighting())
             updateMobilityHighlighting();
+
 
 
         if (BoardConfig.INSTANCE.isTurnBased()) {
@@ -283,12 +288,6 @@ public class PieceController {
     }
 
     private void updateMobilityHighlighting() {
-
-        board.applyToAllSquares(s -> {
-            if (s.isHighlighted()) {
-                s.setHighlighted(false);
-            }
-        });
 
         ArrayList<Integer> allPossibleMoves = getAllPossibleMoves();
 
