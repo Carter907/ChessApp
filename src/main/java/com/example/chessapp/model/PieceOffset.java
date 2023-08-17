@@ -8,8 +8,8 @@ import static com.example.chessapp.model.PieceType.PIECE_TEAM_WHITE;
 enum PieceOffset {
     DIAGONAL_OFFSET(new Integer[]{1, 1, -1, -1, -1, 1, 1, -1}),
     STRAIGHT_OFFSET(new Integer[]{1, 0, -1, 0, 0, 1, 0, -1}),
-    PAWN_W_OFFSET(new Integer[]{-1, 0, -1, 1, -1, -1}),
-    PAWN_B_OFFSET(new Integer[]{1, 0, 1, -1, 1, 1}),
+    PAWN_W_OFFSET(new Integer[]{-1, 0, -1, 1, -1, -1, -2, 0}),
+    PAWN_B_OFFSET(new Integer[]{1, 0, 1, -1, 1, 1, 2, 0}),
     KNIGHT_OFFSET(new Integer[]{2, 1, 2, -1, 1, 2, 1, -2,-1, 2, -1, -2, -2, 1, -2, -1}),
     KING_OFFSET(new Integer[]{1, 0, 1, 1, 1, -1, 0, -1, 0, 1, -1, 0, -1, -1, -1, 1});
 

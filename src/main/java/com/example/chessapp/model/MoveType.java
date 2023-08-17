@@ -4,7 +4,6 @@ public enum MoveType {
     CLEAR,
     BLOCKED,
     CAPTURE,
-    HIGHLIGHT,
     SHORT_CASTLE,
     LONG_CASTLE,
     EN_PASSANT;

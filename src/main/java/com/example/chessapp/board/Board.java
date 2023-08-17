@@ -20,9 +20,10 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
-public class Board extends TilePane {
+public class Board extends TilePane implements Cloneable{
 
     public final int SIZE = 8;
     private int squareCount;
@@ -56,6 +57,21 @@ public class Board extends TilePane {
         this.setOnMouseClicked(this::highlightHandler);
 
     }
+    public Board(double squareSize, GameState state, int turnCount, BoardManager manager, BooleanProperty debugging) {
+        this.gameState = state;
+        this.squareSize = squareSize;
+        this.darkSquareColor = defaultDark;
+        this.lightSquareColor = defaultLight;
+        this.debugging = debugging;
+        this.boardManager = manager;
+        this.turnCount = turnCount;
+        this.setAlignment(Pos.CENTER);
+        this.setPrefColumns(SIZE);
+        this.setPrefRows(SIZE);
+
+        this.setOnMouseClicked(this::highlightHandler);
+    }
+
 
     private void highlightHandler(MouseEvent e) {
         if (debugging.get()) {
@@ -326,7 +342,7 @@ public class Board extends TilePane {
                 Piece dormant = square.getPiece();
                 if (dormant.getType().oppositeTeamOf(active.getType())) {
                     // piece can capture another piece
-                    if (square.equals(findSquare(targetRank, targetFile)) && (square.moveTypes.get(MoveType.CAPTURE) || square.moveTypes.get(MoveType.HIGHLIGHT)))
+                    if (square.equals(findSquare(targetRank, targetFile)) && square.moveTypes.get(MoveType.CAPTURE))
                         return Collections.singletonMap(MoveType.CAPTURE, square);
                     else {
 
@@ -362,14 +378,9 @@ public class Board extends TilePane {
                 // is unchecked square a long castle square?
             else if (square.moveTypes.get(MoveType.LONG_CASTLE))
                 return Collections.singletonMap(MoveType.LONG_CASTLE, square);
-            else if (square.moveTypes.get(MoveType.HIGHLIGHT) && active.isPiece("pawn")) {
-                square.moveTypes.replace(MoveType.HIGHLIGHT, false);
-                return Collections.singletonMap(MoveType.BLOCKED, square);
-            }
+
         }
-                        System.out.println("target rank: " + targetRank);
-                        System.out.println("target file: " + targetFile);
-                        System.out.println(square.moveTypes);
+
 
         return Collections.singletonMap(MoveType.CLEAR, square);
     }
@@ -379,8 +390,21 @@ public class Board extends TilePane {
         return String.format(Locale.US, "<board squareSize=%f squareCount=%d/>", squareSize, squareCount);
     }
 
+    @Override
+    public Board clone() {
 
-    public class Square extends StackPane {
+//            double squareSize, GameState state, int turnCount, BoardManager manager, BooleanProperty debugging
+            Board clone = new Board(squareSize, gameState, turnCount, boardManager, debugging);
+            clone.getChildren().setAll(getChildren().stream().map(n -> ((Square)n).clone()).collect(Collectors.toList()));
+
+            // TODO: copy mutable state here, so the clone can't change the internals of the original
+            return clone;
+
+    }
+
+
+
+    public class Square extends StackPane implements Cloneable {
 
         private boolean debug;
         private int rank;
@@ -388,7 +412,7 @@ public class Board extends TilePane {
         private Color color;
         private Piece piece;
         private Rectangle surface;
-        private final HashMap<MoveType, Boolean> moveTypes;
+        private HashMap<MoveType, Boolean> moveTypes;
         private boolean highlighted;
         private int positionTurn;
         private SquareTeam team;
@@ -406,6 +430,22 @@ public class Board extends TilePane {
 
             paint();
 
+        }
+
+        public Square(boolean debug, int rank, int file, Color color,
+                      Piece piece, Rectangle surface, HashMap<MoveType,
+                Boolean> moveTypes, boolean highlighted, int positionTurn,
+                      SquareTeam team) {
+            this.debug = debug;
+            this.rank = rank;
+            this.file = file;
+            this.color = color;
+            this.piece = piece;
+            this.surface = surface;
+            this.moveTypes = new HashMap<>(moveTypes);
+            this.highlighted = highlighted;
+            this.positionTurn = positionTurn;
+            this.team = team;
         }
 
         private void fillSquareTypes() {
@@ -520,6 +560,26 @@ public class Board extends TilePane {
 
         public void setFile(int file) {
             this.file = file;
+        }
+
+        @Override
+        public Square clone() {
+
+                Square clone = new Square(debug, rank, file, color,
+                        piece, surface, moveTypes, highlighted, positionTurn, team);
+                return clone;
+
+        }
+
+        public void restore(Square square) {
+            file = square.file;
+            rank = square.rank;
+            moveTypes = square.moveTypes;
+            highlighted = square.highlighted;
+            surface = square.surface;
+            team = square.team;
+            piece = square.piece;
+            color = square.color;
         }
     }
 }

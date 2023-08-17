@@ -2,18 +2,27 @@ package com.example.chessapp.model;
 
 import com.example.chessapp.board.Board;
 import com.example.chessapp.peices.Piece;
-import javafx.scene.paint.Color;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-public class BoardManager {
+public class BoardManager implements Cloneable {
     private Board board;
+    private Board boardPeer;
     private int team, currentRank, currentFile;
     private PieceType type;
 
     public BoardManager(Board board) {
         this.board = board;
+    }
+
+    public void beginPeer() {
+        boardPeer = board;
+        board = board.clone();
+    }
+
+    public void endPeer() {
+        board = boardPeer;
     }
 
     public Integer[] positionIsLegal(PieceModel pieceModel, int setRank, int setFile) {
@@ -52,12 +61,15 @@ public class BoardManager {
         return null;
     }
 
-    public boolean inCheck(int square1, int square2) {
-        Piece piece1, piece2;
-        piece1 = board.findSquare(square1).getPiece();
-        piece2 = board.findSquare(square2).getPiece();
+    public boolean inCheck(int attackingSquare, int receivingSquare) {
+        Piece attackingPiece, potentialKing;
+        attackingPiece = board.findSquare(attackingSquare).getPiece();
+        potentialKing = board.findSquare(receivingSquare).getPiece();
 
-        return piece1 != null && piece2 != null && (piece1.getType().oppositeTeamOf(piece2.getType())) && piece2.isPiece("king");
+        return attackingPiece != null &&
+                potentialKing != null &&
+                (attackingPiece.getType().oppositeTeamOf(potentialKing.getType()))
+                && potentialKing.isPiece("king");
     }
 
     private Integer[] queenPositionLegal(int setRank, int setFile) {
@@ -113,6 +125,14 @@ public class BoardManager {
         }
         return indices;
     }
+
+    public void restoreConstraints(Integer[] indices) {
+        applyToAllSquares(indices, s -> {
+            s.restore(boardPeer.findSquare(s.getIndex()));
+
+        });
+    }
+
     public void applyToAllSquares(Integer[] indices, Consumer<Board.Square> consumer) {
 
         Arrays.stream(indices).map(board::findSquare).forEach(consumer);
@@ -275,6 +295,8 @@ public class BoardManager {
 
     }
 
+
+
     private Integer[] knightPositionLegal(int setRank, int setFile) {
 
         if ((setFile == currentFile - 1 || setFile == currentFile + 1) && (setRank == currentRank + 2 || setRank == currentRank - 2))
@@ -299,5 +321,10 @@ public class BoardManager {
 
     public double rankToY(double squareHeight, int rank) {
         return (8 - rank) * squareHeight;
+    }
+
+
+    public Board getBoard() {
+        return this.board;
     }
 }

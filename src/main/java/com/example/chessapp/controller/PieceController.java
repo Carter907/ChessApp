@@ -27,6 +27,8 @@ public class PieceController {
         pieceView.setOnMousePressed(this::pressedPiece);
         pieceView.setOnMouseDragged(this::dragPiece);
         pieceView.setOnMouseReleased(this::movePiece);
+
+
     }
 
     private void pressedPiece(MouseEvent mouseEvent) {
@@ -49,21 +51,24 @@ public class PieceController {
         try {
             pieceAction();
         } catch (ChessMoveException e) {
-            new Alert(
-                    Alert.AlertType.ERROR,
-                    e.getMessage()
-            );
+//            new Alert(
+//                    Alert.AlertType.ERROR,
+//                    e.getMessage()
+//            );
         }
     }
 
-    private void pieceAction() throws ChessMoveException {
+    private boolean pieceAction() throws ChessMoveException {
 
         // checking for turn and other conditions are met to see if the position is legal. If not, the piece
         // is automatically reset and the method returns.
         System.out.println(board.getTurnCount());
-
+        board.applyToAllSquares(s -> {
+            if (s.isHighlighted()) {
+                s.setHighlighted(false);
+            }
+        });
         // view piece moves:
-
         if (BoardConfig.INSTANCE.hasMobilityHighlighting())
             updateMobilityHighlighting();
 
@@ -72,7 +77,7 @@ public class PieceController {
             if ((board.getTurnCount() % 2 == 1 && piece.getTeam() == PieceType.PIECE_TEAM_WHITE) ||
                     (board.getTurnCount() % 2 == 0 && piece.getTeam() == PieceType.PIECE_TEAM_BLACK)) {
                 piece.resetPosition();
-                return;
+                return false;
             }
         }
 
@@ -84,11 +89,21 @@ public class PieceController {
 
         // get the squares that player wants to check for their moveTo
 
+
+        if (completeMoveAction(rank, file) && BoardConfig.INSTANCE.hasMobilityHighlighting())
+            updateMobilityHighlighting();
+
+        return true;
+    }
+
+    private boolean completeMoveAction(int rank, int file) throws ChessMoveException {
+
+
         Integer[] squares = manager.positionIsLegal(new PieceModel(piece.getType(), piece.getRank(), piece.getFile()), rank, file);
 
         if (squares == null || Arrays.binarySearch(squares, -1) >= 0) {
             piece.resetPosition();
-            return;
+            return false;
         }
         // check the legality of the moveTo based on pieces on the board and other conditions that game up the game of Chess
 
@@ -118,7 +133,10 @@ public class PieceController {
         // determine what action to take based on what happens
 
         switch (moveType) {
-            case CLEAR -> piece.moveTo(targetSquare);
+            case CLEAR -> {
+                piece.playerMoveTo(targetSquare);
+
+            }
             case BLOCKED -> piece.resetPosition();
             case CAPTURE -> {
                 Piece enemy = checkedSquare.getPiece();
@@ -127,20 +145,19 @@ public class PieceController {
                     captureKing(enemy);
 
                 piece.capture(enemy);
-                piece.moveTo(targetSquare);
-
+                piece.playerMoveTo(targetSquare);
 
             }
             case EN_PASSANT -> {
                 piece.capture(board.findSquare(rank + (piece.getTeam() == PieceType.PIECE_TEAM_WHITE ? 1 : -1), file).getPiece());
-                piece.moveTo(targetSquare);
+                piece.playerMoveTo(targetSquare);
             }
             case SHORT_CASTLE -> {
                 if (canCastleShort(targetSquare)) {
-                    piece.moveTo(targetSquare);
+                    piece.playerMoveTo(targetSquare);
                     Piece rook = getCastleRook(targetSquare, MoveType.SHORT_CASTLE);
 
-                    rook.moveTo(board.findSquare(rank, file - 1));
+                    rook.playerMoveTo(board.findSquare(rank, file - 1));
 
                 } else
                     piece.resetPosition();
@@ -148,11 +165,10 @@ public class PieceController {
             }
             case LONG_CASTLE -> {
                 if (canCastleLong(targetSquare)) {
-                    piece.moveTo(targetSquare);
+                    piece.playerMoveTo(targetSquare);
                     Piece rook = getCastleRook(targetSquare, MoveType.LONG_CASTLE);
 
-                    rook.moveTo(board.findSquare(rank, file + 1));
-
+                    rook.playerMoveTo(board.findSquare(rank, file + 1));
                 } else
                     piece.resetPosition();
 
@@ -165,44 +181,44 @@ public class PieceController {
         // go through each piece and check movable squares
 
 
-
+        return true;
     }
 
     private ArrayList<Integer> getAllPossibleMoves() {
         ArrayList<Integer> squares = new ArrayList<>();
         PieceModel pieceModel = new PieceModel(piece.getType(), piece.getRank(), piece.getFile());
         int rank = pieceModel.getRank(), file = pieceModel.getFile();
+
+        manager.beginPeer();
+        board = manager.getBoard();
+
+
         Integer[] offsets = pieceModel.getType().getMoveOffsets();
 
         for (int i = 0; i < offsets.length - 1; i += 2) {
-            try {
-                if (!isOffsetLegal(offsets[i], offsets[i + 1], rank, file))
-                    continue;
+            if (!isOffsetLegal(offsets[i], offsets[i + 1], rank, file))
+                continue;
 
-                if (piece.getType().isStepPiece())
+            if (piece.getType().isStepPiece())
+                squares.addAll(List.of(
+                        getPossibleSquares(pieceModel, rank += offsets[i], file += offsets[i + 1])
+                ));
+            else
+                while (rank <= 8 && rank > 0 && file <= 8 && file > 0) {
+                    if (!isOffsetLegal(offsets[i], offsets[i + 1], rank, file))
+                        break;
                     squares.addAll(List.of(
                             getPossibleSquares(pieceModel, rank += offsets[i], file += offsets[i + 1])
                     ));
-                else
-                    while (rank <= 8 && rank > 0 && file <= 8 && file > 0) {
-                        if (!isOffsetLegal(offsets[i], offsets[i + 1], rank, file))
-                            break;
-                        squares.addAll(List.of(
-                                getPossibleSquares(pieceModel, rank += offsets[i], file += offsets[i + 1])
-                        ));
 
-                    }
-                rank = pieceModel.getRank();
-                file = pieceModel.getFile();
-            } catch (NullPointerException e) {
-                System.err.println(e.getMessage());
-                System.err.println("rank = " + rank);
-                System.err.println("file = " + file);
-                System.err.println("offsetRank = " + offsets[i]);
-                System.err.println("offsetFile = " + offsets[i + 1]);
-                System.err.println();
-            }
+                }
+            rank = pieceModel.getRank();
+            file = pieceModel.getFile();
+
         }
+
+        manager.endPeer();
+        board = manager.getBoard();
 
 
         return squares;
@@ -217,29 +233,32 @@ public class PieceController {
     }
 
     private Integer[] getPossibleSquares(PieceModel pieceModel, int rank, int file) {
+
         Integer[] possibleMoves = manager.positionIsLegal(pieceModel, rank, file);
+
+
         if (possibleMoves == null || Arrays.binarySearch(possibleMoves, -1) >= 0)
             return new Integer[0];
-        Arrays.stream(possibleMoves)
-                .map(s -> board.findSquare(s))
-                .forEach(bs -> {
-                    if (bs.getMoveTypes().get(MoveType.CAPTURE))
-                        bs.getMoveTypes().replace(MoveType.HIGHLIGHT, true);
-                    manager.resetSquareConstraints(bs);
-
-                });
         Integer[] finalPossibleMoves = possibleMoves;
 
         possibleMoves = Stream.of(possibleMoves)
-                .filter(n -> board.checkSquares(
-                        piece,
-                        finalPossibleMoves,
-                        board.findSquare(n).getRank(),
-                        board.findSquare(n).getFile()
-                ).entrySet().iterator().next().getKey() != MoveType.BLOCKED)
+                .filter(n -> {
+                    int targetRank = board.findSquare(n).getRank();
+                    int targetFile = board.findSquare(n).getFile();
+                    MoveType type = board.checkSquares(piece, finalPossibleMoves,
+                            targetRank, targetFile
+                    ).entrySet().iterator().next().getKey();
+
+                    System.out.println(type + " to " + targetRank + "rank and " + targetFile + " file");
+                    System.out.println("moveTypes: " + board.findSquare(n).getMoveTypes());
+
+
+                    return type != MoveType.BLOCKED;
+                })
                 .toArray(Integer[]::new);
 
         pieceChecksKing(possibleMoves);
+
 
         return possibleMoves;
     }
@@ -247,10 +266,7 @@ public class PieceController {
     private void pieceChecksKing(Integer[] possibleMoves) {
         for (int squareIndex : possibleMoves) {
             if (manager.inCheck(manager.posToIndex(piece.getRank(), piece.getFile()), squareIndex)) {
-                new Alert(
-                        Alert.AlertType.INFORMATION,
-                        "King is in Check!"
-                ).show();
+
                 break;
 
             }
@@ -264,25 +280,15 @@ public class PieceController {
 
     private void updateMobilityHighlighting() {
 
-        board.applyToAllSquares(s -> {
-            if (s.isHighlighted()) {
-                s.setHighlighted(false);
-            }
-        });
-
         ArrayList<Integer> allPossibleMoves = getAllPossibleMoves();
 
 
         for (Integer index : allPossibleMoves) {
             Board.Square square = board.findSquare(index);
             square.setHighlighted(true);
-            applyAfterMobilityHighlightingSet(square);
+
         }
 
-    }
-
-    private void applyAfterMobilityHighlightingSet(Board.Square square) {
-        square.getMoveTypes().replace(MoveType.HIGHLIGHT, false);
     }
 
     private void captureKing(Piece enemy) {
@@ -298,16 +304,12 @@ public class PieceController {
     private boolean canCastleLong(Board.Square targetSquare) throws ChessMoveException {
 
         // TODO: add checks for castling long
-        try {
-            Piece piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile() - 2).getPiece();
-            System.out.println("checked if this piece was a rook:" + piece);
-            if (piece.isPiece("rook")) {
+            Piece potentialRook = board.findSquare(targetSquare.getRank(), targetSquare.getFile() - 2).getPiece();
+
+            if (potentialRook.isPiece("rook") && potentialRook.hasNotMoved() && piece.hasNotMoved()) {
                 return true;
             }
             return false;
-        } catch (NullPointerException e) {
-            throw new ChessMoveException("wrong piece or piece is null", e);
-        }
 
     }
 
@@ -315,11 +317,13 @@ public class PieceController {
 
         //TODO: add checks for castling short
 
-        Piece piece = board.findSquare(target.getRank(), target.getFile() + 1).getPiece();
-        System.out.println("checked if this piece was a rook:" + piece);
-        if (piece.isPiece("rook")) {
+        Piece potentialRook = board.findSquare(target.getRank(), target.getFile() + 1).getPiece();
+
+
+        if (potentialRook.isPiece("rook") && piece.hasNotMoved()) {
             return true;
         }
+
         return false;
     }
 
@@ -330,7 +334,7 @@ public class PieceController {
             piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile() + 1).getPiece();
         else if (type == MoveType.LONG_CASTLE)
             piece = board.findSquare(targetSquare.getRank(), targetSquare.getFile() - 2).getPiece();
-        if (piece.isPiece("rook"))
+        if (piece != null && piece.isPiece("rook"))
             return piece;
         else
             throw new IllegalStateException("piece is not a rook or pieces have moved");
