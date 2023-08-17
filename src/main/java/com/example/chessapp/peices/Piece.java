@@ -7,6 +7,7 @@ import com.example.chessapp.model.PieceType;
 import com.example.chessapp.view.PieceView;
 
 
+
 public class Piece {
     private final PieceType type;
     private Board board;
@@ -16,7 +17,8 @@ public class Piece {
     private final PieceController controller;
     private int rank;
     private int file;
-    private int team;
+    private final int team;
+    private boolean hasMoved;
 
     public Piece(PieceType type, Board board, int rank, int file) {
         this.type = type;
@@ -52,9 +54,12 @@ public class Piece {
 
         this.view.setX(x);
         this.view.setY(y);
-
 //        System.out.println(this);
 
+    }
+    public void playerMoveTo(Board.Square square) {
+        moveTo(square);
+        hasMoved = true;
     }
 
     public PieceView getView() {
@@ -138,5 +143,12 @@ public class Piece {
         return String.format("<piece:%s square=%s rank=%d file=%d board=%s/>",type, square, rank, file, board);
     }
 
+
+    public boolean hasNotMoved() {
+        return !hasMoved;
+    }
+    public void hasMoved() {
+        this.hasMoved = true;
+    }
 
 }

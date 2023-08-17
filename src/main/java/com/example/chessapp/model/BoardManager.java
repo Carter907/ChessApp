@@ -2,7 +2,6 @@ package com.example.chessapp.model;
 
 import com.example.chessapp.board.Board;
 import com.example.chessapp.peices.Piece;
-import javafx.scene.paint.Color;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -62,12 +61,15 @@ public class BoardManager implements Cloneable {
         return null;
     }
 
-    public boolean inCheck(int square1, int square2) {
-        Piece piece1, piece2;
-        piece1 = board.findSquare(square1).getPiece();
-        piece2 = board.findSquare(square2).getPiece();
+    public boolean inCheck(int attackingSquare, int receivingSquare) {
+        Piece attackingPiece, potentialKing;
+        attackingPiece = board.findSquare(attackingSquare).getPiece();
+        potentialKing = board.findSquare(receivingSquare).getPiece();
 
-        return piece1 != null && piece2 != null && (piece1.getType().oppositeTeamOf(piece2.getType())) && piece2.isPiece("king");
+        return attackingPiece != null &&
+                potentialKing != null &&
+                (attackingPiece.getType().oppositeTeamOf(potentialKing.getType()))
+                && potentialKing.isPiece("king");
     }
 
     private Integer[] queenPositionLegal(int setRank, int setFile) {

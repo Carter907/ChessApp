@@ -3,14 +3,24 @@ package com.example.chessapp.board;
 public enum BoardConfig {
 
     INSTANCE;
-    private volatile boolean turnBased;
-    private volatile boolean squaresCheckedHighlighting;
-    private volatile boolean mobilityHighlighting;
+    private boolean turnBased;
+    private boolean squaresCheckedHighlighting;
+    private boolean mobilityHighlighting;
+    private boolean isWhite;
 
     BoardConfig() {
         turnBased = true;
         squaresCheckedHighlighting = false;
         mobilityHighlighting = true;
+        isWhite = false;
+    }
+
+    public synchronized boolean isWhite() {
+        return isWhite;
+    }
+
+    public synchronized void setWhite(boolean white) {
+        isWhite = white;
     }
 
     public synchronized boolean isTurnBased() {

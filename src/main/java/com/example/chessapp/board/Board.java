@@ -565,21 +565,6 @@ public class Board extends TilePane implements Cloneable{
         @Override
         public Square clone() {
 
-//                    public Square(boolean debug, int rank, int file, Color color,
-//                    Piece piece, Rectangle surface, HashMap<MoveType,
-//                    Boolean> moveTypes, boolean highlighted, int positionTurn,
-//            SquareTeam team) {
-//                this.debug = debug;
-//                this.rank = rank;
-//                this.file = file;
-//                this.color = color;
-//                this.piece = piece;
-//                this.surface = surface;
-//                this.moveTypes = moveTypes;
-//                this.highlighted = highlighted;
-//                this.positionTurn = positionTurn;
-//                this.team = team;
-//            }
                 Square clone = new Square(debug, rank, file, color,
                         piece, surface, moveTypes, highlighted, positionTurn, team);
                 return clone;
